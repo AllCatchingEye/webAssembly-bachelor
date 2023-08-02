@@ -11,6 +11,6 @@ Exposee:
 Links:
 
 Unsere präferierte Runtime: 
-https://github.com/bytecodealliance/wasm-micro-runtime
-https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
-https://github.com/WebAssembly/component-model/tree/main
+* https://github.com/bytecodealliance/wasm-micro-runtime
+* https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
+* https://github.com/WebAssembly/component-model/tree/main
