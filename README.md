@@ -10,7 +10,7 @@ Mithilfe vom WIT Format können Packages erstellt werden in denen Typen, Interfa
 
 2. Wie ich vorgehen werde
 
-Für gegebenen Code sollen mithilfe vom WIT Format die Interfaces umgesetzt werden. Die Interfaces sollen korrekte Funktionalität getestet werden. 
+Für gegebenen Code sollen mithilfe vom WIT Format die Interfaces entsprechend der Anforderungen umgesetzt werden. Die Interfaces sollen auf korrekte Funktionalität getestet werden. 
 
 3. Evaluation
 
