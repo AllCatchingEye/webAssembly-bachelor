@@ -10,7 +10,11 @@ Mithilfe vom WIT Format können Packages erstellt werden in denen Typen, Interfa
 
 2. Wie ich vorgehen werde
 
+Für gegebenen Code sollen mithilfe vom WIT Format die Interfaces umgesetzt werden. Die Interfaces sollen korrekte Funktionalität getestet werden. 
+
 3. Evaluation
+
+Die erstellten Interfaces sollen anhand einer Reihe von Kriterien evaluiert werden. Zu den Kriterien können beispielsweise Performanz, Portabilität, Erweiterbarkeit gehören. Im Laufe der Bachelorarbeit können zusätzliche Kriterien, abhängig von den Anforderungen, dazukommen.
 
 Links:
 
