@@ -12,10 +12,8 @@ Die Implementierung von Schnittstellen in WebAssembly erfolgt mithilfe des Kompo
 
 Der Arbeitsablauf gliedert sich in zwei Hauptphasen:
 
-<ul>
-   <li>**Integration von WASMR**: Zu Beginn wird WASMR erfolgreich in das Projekt integriert, um die Grundlage für die WebAssembly-Implementierung zu schaffen.</li>
-   <li>**Entwicklung von Sensorenschnittstellen**: Anschließend werden mithilfe des WIT-Formats die Schnittstellen für die Sensoren gemäß den spezifischen Anforderungen entwickelt und umgesetzt.</li>
-</ul>
+* **Integration von WASMR**: Zu Beginn wird WASMR erfolgreich in das Projekt integriert, um die Grundlage für die WebAssembly-Implementierung zu schaffen.</li>
+* **Entwicklung von Sensorenschnittstellen**: Anschließend werden mithilfe des WIT-Formats die Schnittstellen für die Sensoren gemäß den spezifischen Anforderungen entwickelt und umgesetzt.
 
 Die entwickelten Schnittstellen werden einer umfassenden Funktionalitätsprüfung unterzogen. Hierzu wird beispielsweise ein Gerät mit Arduino erstellt, um die Leistung der Sensoren in verschiedenen Umgebungen zu testen, darunter die Erkennung von Lichtveränderungen in hellen und dunklen Bereichen.
 
