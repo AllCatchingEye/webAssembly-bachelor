@@ -17,10 +17,9 @@ Die Interfaces sollen auf korrekte Funktionalität getestet werden. Dafür kann 
 
 3. Evaluation
 
-Das Projekt soll anschließend evaluiert werden, indem es hierfür die Entwicklung analysiert wird. In der Analyse wird festgehalten was in der Entwicklung gut lief und welche Vorteile die Umsetzung mittels WebAssembly gebracht hat. 
+Das Projekt soll anschließend evaluiert werden, indem es hierfür die Entwicklung analysiert wird. Dies geschieht anhand einer Reihe von gegebenen Kriterien, z.B Funktionalität, Performanz, wie gut die Entwicklung lief, etc... 
 
-Auch Probleme und Schwierigkeiten sollen aufgeführt werden, mögliche Verbesserungen und Lösungen können potentiell mit eingebracht werden. 
-
+In der Analyse wird festgehalten was in der Entwicklung gut lief und welche Vorteile die Umsetzung mittels WebAssembly gebracht hat. Auch Probleme und Schwierigkeiten sollen aufgeführt werden, mögliche Verbesserungen und Lösungen können potentiell mit eingebracht werden. 
 
 Links:
 
