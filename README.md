@@ -4,17 +4,21 @@ Exposee:
 
 1. Problemstellung
    
-Thema der Bachelorarbeit ist das Erstellen und Umsetzen von Interfaces in WebAssembly. Interfaces in WebAssembly können mittels dem Component-model definiert werden. Das Component-model stellt hierfür das Wasm Interface Type (WIT) Format zur Verfügung.
+Thema der Bachelorarbeit ist das Erstellen und Umsetzen von Interfaces für Sensoren in WebAssembly. Für die Umsetzung von WebAssembly wird die WebAssembly Micro Runtime (WASMR) verwendet, die eine Vielzahl an Tools und Libraries mit sich bringt um WebAssembly in Projekte einzubinden und umzusetzen. 
 
-Mithilfe vom WIT Format können Packages erstellt werden in denen Typen, Interfaces und Components definiert und beschrieben werden. Diese wiederum können sowohl von anderen Packages importiert als auch wieder exportiert werden. 
+Interfaces in WebAssembly können mittels dem Component-model definiert werden. Das Component-model stellt hierfür das Wasm Interface Type (WIT) Format zur Verfügung. Mithilfe vom WIT Format können Packages erstellt werden in denen Typen, Interfaces und Components definiert und beschrieben werden. Diese wiederum können sowohl von anderen Packages importiert als auch wieder exportiert werden. 
 
 2. Wie ich vorgehen werde
 
-Für gegebenen Code sollen mithilfe vom WIT Format die Interfaces entsprechend der Anforderungen umgesetzt werden. Die Interfaces sollen auf korrekte Funktionalität getestet werden. 
+Zunächst sollte WASMR korrekt in das Projekt eingebunden werden. Anschließend werden mithilfe vom WIT Format die Interfaces für die Sensoren entsprechend der Anforderungen umgesetzt. 
+
+Die Interfaces sollen auf korrekte Funktionalität getestet werden. Dafür kann z.B ein Gerät mit Arduino gebaut werden mit dem man die Sensoren testet, z.B wie gut ein Lichtsensor dunkle und helle Bereiche erkennt. 
+
 
 3. Evaluation
 
-Die erstellten Interfaces sollen anhand einer Reihe von Kriterien evaluiert werden. Zu den Kriterien können beispielsweise Performanz, Portabilität, Erweiterbarkeit gehören. Im Laufe der Bachelorarbeit können zusätzliche Kriterien, abhängig von den Anforderungen, dazukommen.
+Das Projekt soll anschließend evaluiert werden, indem es hierfür die Entwicklung analysiert wird. In der Analyse wird festgehalten was in der Entwicklung gut lief und welche Vorteile die Umsetzung mittels WebAssembly gebracht hat. Auch Probleme und Schwierigkeiten sollen aufgeführt werden, mögliche Verbesserungen und Lösungen können potentiell mit eingebracht werden. 
+
 
 Links:
 
