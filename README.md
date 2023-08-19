@@ -1,25 +1,29 @@
 # webAssembly-bachelor
 
-Exposee:
+## Exposee:
 
-1. Problemstellung
-   
-Thema der Bachelorarbeit ist das Erstellen und Umsetzen von Interfaces für Sensoren in WebAssembly. Für die Umsetzung von WebAssembly wird die WebAssembly Micro Runtime (WASMR) verwendet, die eine Vielzahl an Tools und Libraries mit sich bringt um WebAssembly in Projekte einzubinden und umzusetzen. 
+### Problemstellung
 
-Interfaces in WebAssembly können mittels dem Component-model definiert werden. Das Component-model stellt hierfür das Wasm Interface Type (WIT) Format zur Verfügung. Mithilfe vom WIT Format können Packages erstellt werden in denen Typen, Interfaces und Components definiert und beschrieben werden. Diese wiederum können sowohl von anderen Packages importiert als auch wieder exportiert werden. 
+Das Thema dieser Bachelorarbeit befasst sich mit der Entwicklung und Implementierung von Schnittstellen für Sensoren in WebAssembly. Dabei wird die WebAssembly Micro Runtime (WASMR) als Grundlage genutzt, die eine umfangreiche Sammlung von Tools und Bibliotheken bereitstellt, um WebAssembly in verschiedene Projekte zu integrieren und umzusetzen.
 
-2. Wie ich vorgehen werde
+Die Implementierung von Schnittstellen in WebAssembly erfolgt mithilfe des Komponentenmodells. Hierbei steht das Wasm Interface Type (WIT) Format zur Verfügung, mit dem Pakete erstellt werden können, die Typen, Schnittstellen und Komponenten definieren und beschreiben. Diese Pakete können sowohl von anderen Modulen importiert als auch exportiert werden.
 
-Zunächst sollte WASMR korrekt in das Projekt eingebunden werden. Anschließend werden mithilfe vom WIT Format die Interfaces für die Sensoren entsprechend der Anforderungen umgesetzt. 
+### Vorgehensweise
 
-Die Interfaces sollen auf korrekte Funktionalität getestet werden. Dafür kann z.B ein Gerät mit Arduino gebaut werden mit dem man die Sensoren testet, z.B wie gut ein Lichtsensor dunkle und helle Bereiche erkennt. 
+Der Arbeitsablauf gliedert sich in zwei Hauptphasen:
 
+<ul>
+   <li>**Integration von WASMR**: Zu Beginn wird WASMR erfolgreich in das Projekt integriert, um die Grundlage für die WebAssembly-Implementierung zu schaffen.</li>
+   <li>**Entwicklung von Sensorenschnittstellen**: Anschließend werden mithilfe des WIT-Formats die Schnittstellen für die Sensoren gemäß den spezifischen Anforderungen entwickelt und umgesetzt.</li>
+</ul>
 
-3. Evaluation
+Die entwickelten Schnittstellen werden einer umfassenden Funktionalitätsprüfung unterzogen. Hierzu wird beispielsweise ein Gerät mit Arduino erstellt, um die Leistung der Sensoren in verschiedenen Umgebungen zu testen, darunter die Erkennung von Lichtveränderungen in hellen und dunklen Bereichen.
 
-Das Projekt soll anschließend evaluiert werden, indem es hierfür die Entwicklung analysiert wird. Dies geschieht anhand einer Reihe von gegebenen Kriterien, z.B Funktionalität, Performanz, wie gut die Entwicklung lief, etc... 
+### Evaluation
 
-In der Analyse wird festgehalten was in der Entwicklung gut lief und welche Vorteile die Umsetzung mittels WebAssembly gebracht hat. Auch Probleme und Schwierigkeiten sollen aufgeführt werden, mögliche Verbesserungen und Lösungen können potentiell mit eingebracht werden. 
+Die Abschlussphase des Projekts beinhaltet eine detaillierte Evaluation, bei der die Entwicklung und Umsetzung analysiert wird. In dieser Analyse werden die erfolgreichen Aspekte der Entwicklung sowie die Vorteile der Verwendung von WebAssembly herausgestellt.
+
+Zudem werden auftretende Probleme und Herausforderungen dokumentiert. Diese können möglicherweise durch Verbesserungsvorschläge und Lösungsansätze ergänzt werden, um das Projekt weiter zu optimieren.
 
 Links:
 
