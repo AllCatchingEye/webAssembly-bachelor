@@ -10,11 +10,11 @@ Die Interfaces in WebAssembly werden durch das Component-Modell implementiert. D
 
 ### Vorgehensweise
 
-Der erste Schritt besteht darin, sich mit dem vorliegenden Projekt und den spezifizierten Anforderungen vertraut zu machen. Falls erforderlich, wird WebAssembly in das Projekt integriert, um eine Grundlage für die Implementierung der Interfaces zu schaffen.
+In der Bachelorarbeit wird ein Projekt erstellt, das aus verschiedenen Modulen besteht, die miteinander kommunizieren. Die Kommunikation zwischen den Modulen erfolgt mittels der Erstellung von Interfaces im WIT-Format. Die Interfaces werden definiert und sollen von den Modulen umgesetzt werden.
 
-Nach einer erfolgreichen Integration von WebAssembly in das Projekt kann die Entwicklung und Umsetzung der Interfaces für die Sensoren unter Verwendung des WIT-Formats gemäß den spezifischen Anforderungen beginnen.
+Die Verwendung von Interfaces wird auch im Embedded-Bereich getestet, zum Beispiel, indem der Zugriff auf eine API einer geeigneten Plattform ebenfalls mit einer Interfaces beschrieben wird. Falls nötig, muss hierfür noch ein zusätzlicher Wrapper implementiert werden, da das generierte Format der Interfaces möglicherweise nicht mit den Namen der APIs auf der Plattform übereinstimmt.
 
-Die erstellten Interfaces werden praktisch getestet, indem Geräte mit Arduino erstellt werden, die Sensoren enthalten, an denen die definierten Interfaces getestet werden können. Fehler werden behoben, und es werden mögliche Verbesserungen implementiert.
+Die erstellten Interfaces werden praktisch getestet, indem das Projekt auf einer geeigneten Plattform deployed wird und die Kommunikation zwischen den Modoulen durch die Umsetzung der Interfaces beobachtet und getestet wird. Fehler werden behoben, und mögliche Verbesserungen und Features werden iterativ implementiert.
  
 ### Evaluation
 
