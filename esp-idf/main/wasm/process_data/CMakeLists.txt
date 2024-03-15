@@ -19,13 +19,10 @@ set(CMAKE_C_FLAGS "\
 ")
 set(CMAKE_C_LINK_FLAGS ${CMAKE_C_FLAGS})
 
-include($ENV{WAMR_PATH}/core/iwasm/libraries/lib-socket/lib_socket_wasi.cmake)
-
 add_executable(process_data process_data.c)
-target_link_libraries(process_data socket_wasi_ext)
 
 add_custom_command(
-    TARGET process_data.wasm
+    TARGET process_data
     POST_BUILD
-    COMMAND cp process_data.wasm /output
+    COMMAND cp process_data /output
 )
