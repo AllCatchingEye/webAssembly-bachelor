@@ -1,3 +1,0 @@
-/home/envy/Development/Bachelorarbeit/esp-idf/main/wasm/client/CMakeFiles/client.wasm.dir
-/home/envy/Development/Bachelorarbeit/esp-idf/main/wasm/client/CMakeFiles/edit_cache.dir
-/home/envy/Development/Bachelorarbeit/esp-idf/main/wasm/client/CMakeFiles/rebuild_cache.dir

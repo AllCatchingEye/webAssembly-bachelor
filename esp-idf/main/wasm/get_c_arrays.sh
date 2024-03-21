@@ -40,8 +40,5 @@ build_c_array() {
 	echo "Done."
 }
 
-# build_c_array ./add/ ./add/build/add.wasm add
-# build_c_array ./process_data/ ./process_data/build/process_data.wasm process_data
-
-ARGS="-DWASI_SDK_PREFIX=/opt/wasi-sdk/ -DCMAKE_TOOLCHAIN_FILE=/opt/wasi-sdk/share/cmake/wasi-sdk.cmake -DCMAKE_SYSROOT=/opt/wasi-sdk/share/wasi-sysroot/"
-build_c_array ./client/ ./client/build/udp_client.wasm udp_client "$ARGS"
+build_c_array ./add/ ./add/build/add.wasm add
+build_c_array ./process_data/ ./process_data/build/process_data.wasm process_data

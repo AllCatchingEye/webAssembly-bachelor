@@ -19,10 +19,10 @@ set(CMAKE_C_FLAGS "\
 ")
 set(CMAKE_C_LINK_FLAGS ${CMAKE_C_FLAGS})
 
-add_executable(process_data process_data.c)
+add_executable(process_data.wasm process_data.c)
 
 add_custom_command(
-    TARGET process_data
+    TARGET process_data.wasm
     POST_BUILD
-    COMMAND cp process_data /output
+    COMMAND cp process_data.wasm /output
 )
