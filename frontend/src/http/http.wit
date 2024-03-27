@@ -1,0 +1,19 @@
+package local:http;
+
+interface http-handle {
+  resource request {
+    constructor(uri: string, method: string, body: option<string>);
+  }
+
+  resource response {
+    constructor(status: u16, body: string);
+  }
+
+  build-request: func(uri: string, method: string, body: option<string>) -> request;
+  fetch-data: func(req: request) -> result<response>;
+}
+
+world http {
+  //import wasi:http/proxy@0.2.0;
+  export http-handle;
+}
