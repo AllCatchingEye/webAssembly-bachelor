@@ -1,0 +1,5 @@
+package bachelor:app;
+
+world app {
+  import bachelor:server/server-handle@0.0.1;
+}
