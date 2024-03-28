@@ -11,11 +11,16 @@ esp-idf/main/wasm/client/CMakeFiles/
 rust-wit/app/.vscode/
 rust-wit/app/.idea/
 rust-wit/app/target/
+rust-wit/app/src/bindings.rs
 
 rust-wit/server/.vscode/
 rust-wit/server/.idea/
 rust-wit/server/target/
+rust-wit/server/src/bindings.rs
 
 rust-wit/database/.vscode/
 rust-wit/database/.idea/
 rust-wit/database/target/
+rust-wit/database/src/bindings.rs
+
+/wit-deps/
