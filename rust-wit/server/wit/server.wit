@@ -1,7 +1,21 @@
 package bachelor:server@0.0.1;
 
+interface server-helper {
+  use wasi:http/types@0.2.0.{incoming-request, response-outparam};
+  print-headers: func(request: incoming-request);
+  hello-world: func(outparam: response-outparam);
+  unknown-request: func(outparam: response-outparam);
+  send-response: func(content: string, outparam: response-outparam);
+  parse-path: func(path: string, query: option<string>, request: incoming-request, outparam: response-outparam);
+
+  dht11: func(query: option<string>, request: incoming-request, outparam: response-outparam);
+  dht11-get: func(outparam: response-outparam);
+  dht11-post: func(query: option<string>, outparam: response-outparam);
+  dht11-delete: func(query: option<string>, outparam: response-outparam);
+}
 
 /// An example world for the component to target.
 world server {
   include wasi:http/proxy@0.2.0;
+  export server-helper;
 }

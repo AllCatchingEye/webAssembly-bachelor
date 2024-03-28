@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.81"
 bitflags = "2.5.0"
 http = "1.1.0"
 json = "0.12.4"
@@ -17,7 +18,7 @@ wit-bindgen-rt = "0.22.0"
 crate-type = ["cdylib"]
 
 [package.metadata.component]
-package = "component:server"
+package = "bachelor:server"
 # This tells cargo-component to use a special adapter, which doesn't depend on
 # `get-environment` or other things not present in the proxy world.
 proxy = true
