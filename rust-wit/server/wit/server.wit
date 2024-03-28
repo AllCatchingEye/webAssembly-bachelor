@@ -1,0 +1,7 @@
+package bachelor:server@0.0.1;
+
+
+/// An example world for the component to target.
+world server {
+  include wasi:http/proxy@0.2.0;
+}
