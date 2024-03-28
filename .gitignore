@@ -16,7 +16,7 @@ esp-idf/.cache/clangd/index/main.c.9322587139581C0E.idx
 esp-idf/.cache/clangd/index/process_data.h.D15F48F8AC5E90F2.idx
 esp-idf/.cache/clangd/index/process_data.h.E64B95BBBDC31444.idx
 esp-idf/.cache/clangd/index/process_data.h.F4D566E3FBEAC530.idx
-esp-idf/.cache/clangd/index/test_wasm.h.80A57ED147160241.idx
+esp-idf/.cache/cla440 pmol/Lngd/index/test_wasm.h.80A57ED147160241.idx
 esp-idf/.cache/clangd/index/test_wasm.h.97C9668A7E4B8D64.idx
 esp-idf/.cache/clangd/index/test_wasm.h.05656E5102F78E15.idx
 esp-idf/.cache/clangd/index/wasm_program.h.77C280D06D196F76.idx
@@ -1087,3 +1087,15 @@ esp-idf/main/wasm/client/CMakeFiles/client.wasm.dir/flags.make
 esp-idf/main/wasm/client/CMakeFiles/client.wasm.dir/link.txt
 esp-idf/main/wasm/client/CMakeFiles/client.wasm.dir/progress.make
 esp-idf/main/wasm/add/build/add.wasm
+
+./rust-wit/app/.vscode
+./rust-wit/app/.idea
+./rust-wit/app/target
+
+./rust-wit/server/.vscode
+./rust-wit/server/.idea
+./rust-wit/server/target
+
+./rust-wit/database/.vscode
+./rust-wit/database/.idea
+./rust-wit/database/target
