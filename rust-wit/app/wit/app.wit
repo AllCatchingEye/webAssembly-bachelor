@@ -1,5 +1,6 @@
-package bachelor:app;
+package backend:app@0.1.0;
 
 world app {
-  import bachelor:server/server-handle@0.0.1;
+  import backend:adder/add@0.1.0;
+  import backend:server/server-handle@0.1.0;
 }

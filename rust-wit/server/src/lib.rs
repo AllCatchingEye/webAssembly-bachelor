@@ -1,106 +1,64 @@
 #[allow(warnings)]
 mod bindings;
 
-pub use bindings::wasi::http::types::{
-    Fields, IncomingRequest, OutgoingBody, OutgoingResponse, ResponseOutparam,
-};
-use bindings::{exports::bachelor::server::server_helper::Guest, wasi::http::types::Method};
+use bindings::exports::backend::server::server_handle::Guest;
+use bindings::wasi::sockets::instance_network::instance_network;
+use bindings::wasi::sockets::network::{ErrorCode, IpAddressFamily, Ipv4SocketAddress};
+use bindings::wasi::sockets::udp::{IncomingDatagram, IpSocketAddress, Pollable, UdpSocket};
+use bindings::wasi::sockets::udp_create_socket::create_udp_socket;
+
+use crate::bindings::wasi::sockets::network::Network;
 
 struct Component;
 
-bindings::export!(Component with_types_in bindings);
+impl Guest for Component {
+    fn handle() -> Result<(), ErrorCode> {
+        let addr_family = IpAddressFamily::Ipv4;
+        let sock = create_udp_socket(addr_family)?;
 
-impl bindings::exports::bachelor::server::server_helper::Guest for Component {
-    fn hello_world(outparam: ResponseOutparam) {
-        let content = "Hello, wasi:http/proxy world!\n".to_string();
-        Self::send_response(content, outparam);
-    }
+        let addr = IpSocketAddress::Ipv4(Ipv4SocketAddress {
+            port: 0,
+            address: (0, 0, 0, 0),
+        });
 
-    fn unknown_request(outparam: ResponseOutparam) {
-        let content = "Root".to_string();
-        Self::send_response(content, outparam);
-    }
+        let net: Network = instance_network();
+        println!("{}", net.handle());
 
-    fn send_response(content: String, outparam: ResponseOutparam) {
-        let hdrs = Fields::new();
-        let resp = OutgoingResponse::new(hdrs);
-        let body = resp.body().expect("outgoing response");
+        sock.start_bind(&net, addr)?;
+        println!("Started binding udp socket");
 
-        ResponseOutparam::set(outparam, Ok(resp));
+        sock.finish_bind()?;
+        println!("Finished binding udp socket");
 
-        let out = body.write().expect("outgoing stream");
-        out.blocking_write_and_flush(content.as_bytes())
-            .expect("writing response");
+        let pollable: Pollable = sock.subscribe();
+        pollable.block();
 
-        drop(out);
-        OutgoingBody::finish(body, None).unwrap();
-    }
+        let data = Self::socket_receive(&sock)?;
+        let message: String = String::from_utf8(data).expect("Error converting bytes to string");
+        println!("Received message: {}", message);
 
-    fn print_headers(request: IncomingRequest) {
-        print!("Received Request with Header:");
-        for (key, value) in request.headers().entries().iter() {
-            let value_str = String::from_utf8_lossy(value);
-            println!("{}: {}", key, value_str);
+        let json: serde_json::Value =
+            serde_json::from_str(message.as_str()).expect("Error parsing JSON");
+
+        if let Some(id) = json.get("id") {
+            if let Some(id_str) = id.as_str() {}
         }
+
+        Ok(())
     }
 
-    fn parse_path(
-        path: String,
-        query: Option<String>,
-        request: IncomingRequest,
-        outparam: ResponseOutparam,
-    ) {
-        Self::print_headers(request);
-        match path.as_str() {
-            "/hello_world" => Component::hello_world(outparam),
-            _ => Component::unknown_request(outparam),
-        }
-    }
+    fn socket_receive(sock: &UdpSocket) -> Result<Vec<u8>, ErrorCode> {
+        let (inc_data_stream, _) = sock.stream(None)?;
+        let datagrams: Vec<IncomingDatagram> = inc_data_stream.receive(1)?;
+        if let Some(datagram) = datagrams.get(0) {
+            let data = datagram.data.clone();
 
-    fn dht11(query: Option<String>, request: IncomingRequest, outparam: ResponseOutparam) {
-        let meth = request.method();
-        match meth {
-            Method::Get => Self::dht11_get(outparam),
-            Method::Post => Self::dht11_post(query, outparam),
-            Method::Delete => Self::dht11_delete(query, outparam),
-            _ => {}
-        }
-    }
-
-    fn dht11_get(outparam: ResponseOutparam) {
-        // Perform sql query for dht11 values
-
-        // Send query results back
-    }
-
-    fn dht11_post(query: Option<String>, outparam: ResponseOutparam) {
-        // Insert query into sql database
-
-        // Respond if insertion was successful
-    }
-
-    fn dht11_delete(query: Option<String>, outparam: ResponseOutparam) {
-        // Delete entry specified in query from database
-
-        // Respond if deletion was successful
-    }
-}
-
-impl bindings::exports::wasi::http::incoming_handler::Guest for Component {
-    /// Say hello!
-    fn handle(request: IncomingRequest, outparam: ResponseOutparam) {
-        let path = request.path_with_query().unwrap_or_default();
-
-        // Splitting at the first occurrence of '?'
-        if let Some((path_str, query)) = path.split_once('?') {
-            Component::parse_path(
-                path_str.to_string(),
-                Some(query.to_string()),
-                request,
-                outparam,
-            );
+            Ok(data)
         } else {
-            Component::parse_path(path, None, request, outparam);
+            println!("No datagrams received");
+            Err(ErrorCode::InvalidArgument)
         }
     }
 }
+
+bindings::export!(Component with_types_in bindings);

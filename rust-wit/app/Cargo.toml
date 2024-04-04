@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [package.metadata.component]
-package = "component:app"
+package = "bachelor:backend"
 
 [package.metadata.component.dependencies]
 
@@ -15,7 +15,8 @@ world = "app"
 
 # Tell cargo where to find external WITs
 [package.metadata.component.target.dependencies]
-"bachelor:server" = { path = "../server/wit" }
+"backend:adder" = { path = "../adder/wit"}
+"backend:server" = { path = "../server/wit"}
 "wasi:http" = { path = "wit/deps/http" }
 "wasi:clocks" = { path = "wit/deps/clocks" }
 "wasi:io" = { path = "wit/deps/io" }
@@ -27,5 +28,7 @@ world = "app"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.81"
 bitflags = "2.5.0"
-wit-bindgen-rt = "0.22.0"
+clap = { version = "4.5.4", features = ["derive"] }
+wit-bindgen-rt = "0.24.0"

@@ -1,0 +1,9 @@
+search-paths:
+- ./target/wasm32-wasi/debug
+- ../adder/target/wasm32-wasi/debug
+- ../server/target/wasm32-wasi/debug
+  
+dependencies:
+  root: app.wasm
+  adder: adder.wasm
+
