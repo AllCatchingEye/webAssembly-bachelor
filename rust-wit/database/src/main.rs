@@ -2,87 +2,135 @@ bindgen!({
     path: "wit",
     world: "database",
     async: true,
+    with: {
+        "backend:database/sql/connection": DatabaseConnectionHost,
+    }
 });
 
-use bachelor::database::readwrite;
-use bachelor::database::types;
-use bachelor::database::types::{Connection, Error, Statement};
-use bachelor::database::types::{DataType, Row};
+use backend::database::sql;
+use sqlx::SqliteConnection;
 use wasmtime::{
     component::{bindgen, Component, Linker},
     Config, Engine, Result, Store,
 };
 
-use wasmtime_wasi::bindings;
-use wasmtime_wasi::WasiCtx;
-use wasmtime_wasi::WasiCtxBuilder;
-use wasmtime_wasi::WasiP1Ctx;
+use wasmtime::component::Resource;
 
-struct DatabaseTypesHost;
-struct ReadwriteHost;
+use wasmtime_wasi::bindings::Imports;
+use wasmtime_wasi::WasiP1Ctx;
+use wasmtime_wasi::{ResourceTable, WasiCtxBuilder};
+
+use sqlx::prelude::*;
+use sqlx::sqlite::SqliteConnectOptions;
+
+pub struct DatabaseTypesHost {
+    res_table: ResourceTable,
+}
+pub struct DatabaseConnectionHost {
+    connection: SqliteConnection,
+}
 
 #[async_trait::async_trait]
-impl types::Host for DatabaseTypesHost {
-    async fn drop_statement(&mut self, _s: Statement) -> Result<(), anyhow::Error> {
+impl sql::HostConnection for DatabaseTypesHost {
+    fn drop(&mut self, _: Resource<DatabaseConnectionHost>) -> Result<(), wasmtime::Error> {
         Ok(())
-    }
-
-    async fn prepare_statement(
-        &mut self,
-        _query: String,
-        _params: Vec<String>,
-    ) -> Result<Result<u32, u32>, anyhow::Error> {
-        Ok(Ok(0))
-    }
-
-    async fn drop_error(&mut self, _conn: Connection) -> Result<(), anyhow::Error> {
-        Ok(())
-    }
-
-    async fn trace_error(&mut self, _conn: Connection) -> Result<String, anyhow::Error> {
-        Ok(">>> called trace_error".to_string())
-    }
-
-    async fn drop_connection(&mut self, _conn: Connection) -> Result<(), anyhow::Error> {
-        Ok(())
-    }
-
-    async fn open_connection(
-        &mut self,
-        _name: String,
-    ) -> Result<Result<Connection, Error>, anyhow::Error> {
-        Ok(Ok(0))
     }
 }
 
 #[async_trait::async_trait]
-impl readwrite::Host for ReadwriteHost {
-    async fn query(
+impl sql::Host for DatabaseTypesHost {
+    async fn open_connection(
         &mut self,
-        _conn: Connection,
-        _q: Statement,
-    ) -> Result<Result<Vec<Row>, Error>, anyhow::Error> {
-        let row = Row {
-            field_name: String::from("id"),
-            value: DataType::Int32(1),
-        };
+        url: String,
+        create_if_missing: bool,
+    ) -> Result<Result<Resource<DatabaseConnectionHost>, u32>, wasmtime::Error> {
+        println!("Opening {}...", url);
+        let options = SqliteConnectOptions::new()
+            .filename(url)
+            .create_if_missing(create_if_missing);
+        let conn = options.connect().await?;
 
-        let rows: Vec<Row> = vec![row];
-        Ok(Ok(rows))
+        let database_connection = DatabaseConnectionHost { connection: conn };
+        let res = self.res_table.push(database_connection)?;
+
+        Ok(Ok(res))
     }
 
-    async fn exec(
+    async fn create_table(
         &mut self,
-        _c: Connection,
-        _q: Statement,
-    ) -> Result<Result<Connection, Error>, anyhow::Error> {
-        Ok(Ok(0))
+        query: String,
+        conn: Resource<DatabaseConnectionHost>,
+    ) -> Result<(), wasmtime::Error> {
+        let host_conn = self.res_table.get_mut(&conn)?;
+        sqlx::query(query.as_str())
+            .execute(&mut host_conn.connection)
+            .await?;
+        Ok(())
+    }
+
+    async fn drop_connection(
+        &mut self,
+        conn: Resource<DatabaseConnectionHost>,
+    ) -> Result<Result<(), u32>, wasmtime::Error> {
+        let host_conn = self.res_table.delete(conn)?;
+        host_conn.connection.close().await?;
+        Ok(Ok(()))
+    }
+
+    async fn select(
+        &mut self,
+        conn: Resource<DatabaseConnectionHost>,
+    ) -> Result<Result<String, u32>, wasmtime::Error> {
+        let host_conn = self.res_table.get_mut(&conn)?;
+
+        let rows = sqlx::query("SELECT * FROM test")
+            .fetch_all(&mut host_conn.connection)
+            .await?;
+
+        let mut result_string = String::new();
+        for row in rows {
+            let id: i32 = row.get(0);
+            let name: String = row.get(1);
+            result_string.push_str(&format!("ID: {}, Name: {}\n", id, name));
+        }
+
+        Ok(Ok(result_string))
+    }
+
+    async fn insert(
+        &mut self,
+        conn: Resource<DatabaseConnectionHost>,
+        name: String,
+    ) -> Result<(), wasmtime::Error> {
+        let host_conn = self.res_table.get_mut(&conn)?;
+        sqlx::query("INSERT INTO test (name) VALUES (?)")
+            .bind(name)
+            .execute(&mut host_conn.connection)
+            .await?;
+        Ok(())
+    }
+
+    async fn delete(
+        &mut self,
+        conn: Resource<DatabaseConnectionHost>,
+        name: String,
+    ) -> Result<(), wasmtime::Error> {
+        let host_conn = self.res_table.get_mut(&conn)?;
+        sqlx::query("DELETE FROM test WHERE name = ?")
+            .bind(name)
+            .execute(&mut host_conn.connection)
+            .await?;
+        Ok(())
+    }
+
+    async fn print_to_host(&mut self, str: String) -> Result<(), wasmtime::Error> {
+        println!("{str}");
+        Ok(())
     }
 }
 
 pub struct Ctx {
-    database_types: DatabaseTypesHost,
-    readwrite: ReadwriteHost,
+    database: DatabaseTypesHost,
     wasi: WasiP1Ctx,
 }
 
@@ -93,33 +141,27 @@ async fn main() -> Result<()> {
     config.wasm_component_model(true);
     let engine = Engine::new(&config)?;
 
-    let database_types = DatabaseTypesHost;
-    let readwrite = ReadwriteHost;
+    let database = DatabaseTypesHost {
+        res_table: ResourceTable::new(),
+    };
     let wasi = WasiCtxBuilder::new().build_p1();
-    let mut store = Store::new(
-        &engine,
-        Ctx {
-            database_types,
-            readwrite,
-            wasi,
-        },
-    );
+    let mut store = Store::new(&engine, Ctx { database, wasi });
 
     let mut linker = Linker::new(&engine);
-    readwrite::add_to_linker(&mut linker, |ctx: &mut Ctx| &mut ctx.readwrite)?;
-    types::add_to_linker(&mut linker, |ctx: &mut Ctx| &mut ctx.database_types)?;
-    bindings::Imports::add_to_linker(&mut linker, |ctx: &mut Ctx| &mut ctx.wasi)?;
+    sql::add_to_linker(&mut linker, |ctx: &mut Ctx| &mut ctx.database)?;
+    Imports::add_to_linker(&mut linker, |ctx: &mut Ctx| &mut ctx.wasi)?;
 
-    let component = Component::from_file(&engine, "target/wasm32-wasi/debug/guest_component.wasm")?;
+    let component = Component::from_file(&engine, "guest-component.wasm")?;
+
     println!("Read file.");
     let (database, _instance) =
         Database::instantiate_async(&mut store, &component, &linker).await?;
+
     println!("Instantiated database");
     let result = database
-        .bachelor_database_handler()
-        .call_add(&mut store, 3, 4)
+        .backend_database_handler()
+        .call_handle(store)
         .await?;
-    println!("Result of add from database is: {}", result);
 
     Ok(())
 }

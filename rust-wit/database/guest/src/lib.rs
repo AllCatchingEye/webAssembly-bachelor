@@ -1,69 +1,45 @@
-use wasi::sockets::instance_network::instance_network;
-use wasi::sockets::network::{ErrorCode, IpAddressFamily, Ipv4SocketAddress};
-use wasi::sockets::udp::{IncomingDatagram, IpSocketAddress, Pollable, UdpSocket};
-use wasi::sockets::udp_create_socket::create_udp_socket;
-
 wit_bindgen::generate!({
     path: "../wit",
     world: "database",
 });
 
-// use bachelor::database::readwrite::{exec, query};
-// use bachelor::database::types::{open_connection, prepare_statement};
+use backend::database::sql::{
+    create_table, delete, drop_connection, insert, open_connection, print_to_host, select, Error,
+};
 
 struct Component;
 
-impl exports::bachelor::database::handler::Guest for Component {
-    fn start_server() -> Result<UdpSocket, ErrorCode> {
-        let addr_family = IpAddressFamily::Ipv4;
-        let socket = create_udp_socket(addr_family)?;
-        Ok(socket)
-    }
+impl exports::backend::database::handler::Guest for Component {
+    fn handle() -> Result<(), Error> {
+        print_to_host("Started handle...");
 
-    fn handle(sock: UdpSocket) -> Result<(), ErrorCode> {
-        let addr = IpSocketAddress::Ipv4(Ipv4SocketAddress {
-            port: 8080,
-            address: (192, 168, 0, 217),
-        });
+        print_to_host("Opening connection to db...");
+        let conn = open_connection("sqlite:data.db", true).unwrap();
 
-        let net = instance_network();
+        print_to_host("Creating table...");
+        create_table(
+            "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT)",
+            &conn,
+        );
 
-        sock.start_bind(&net, addr)?;
-        println!("Started binding udp socket");
+        print_to_host("Inserting into db...");
+        insert(&conn, "Alice");
+        let res = select(&conn)?;
+        let message = format!("Select results after delete:\n{:?}", res);
+        print_to_host(message.as_str());
 
-        let pollable: Pollable = sock.subscribe();
-        pollable.block();
+        print_to_host("Delete from db...");
+        delete(&conn, "Alice");
+        let res = select(&conn)?;
+        let message = format!("Select results after delete:\n{:?}", res);
+        print_to_host(message.as_str());
 
-        let (sock, data) = Self::socket_receive(sock)?;
-        let message: String = String::from_utf8(data).expect("Error converting bytes to string");
-        println!("Received message: {}", message);
+        print_to_host("Drop connection to db");
+        drop_connection(conn)?;
 
-        let json: serde_json::Value =
-            serde_json::from_str(message.as_str()).expect("Error parsing JSON");
-
-        if let Some(id) = json.get("id") {
-            if let Some(id_str) = id.as_str() {}
-        }
+        print_to_host("Finished handler.");
 
         Ok(())
-    }
-
-    fn socket_receive(sock: UdpSocket) -> Result<(UdpSocket, Vec<u8>), ErrorCode> {
-        let (inc_data_stream, _) = sock.stream(None)?;
-        let datagrams: Vec<IncomingDatagram> = inc_data_stream.receive(1)?;
-        if let Some(datagram) = datagrams.get(0) {
-            let data = datagram.data.clone();
-
-            Ok((sock, data))
-        } else {
-            println!("No datagrams received");
-            Err(ErrorCode::InvalidArgument)
-        }
-    }
-
-    fn add(x: i32, y: i32) -> i32 {
-        println!("{} + {} = {}", x, y, x + y);
-        x + y
     }
 }
 

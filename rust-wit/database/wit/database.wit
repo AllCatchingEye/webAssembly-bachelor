@@ -1,4 +1,4 @@
-package bachelor:database;
+package backend:database@0.1.0;
 
 interface types {
     // one single row item
@@ -35,13 +35,14 @@ interface types {
     /// of the error. In the future, this will be extended to provide more information.
     // TODO: switch to `resource error { ... }`
     type error = u32;
-    drop-error: func(e: error);
-    trace-error: func(e: error) -> string ;
+    //drop-error: func(e: error);
+    //trace-error: func(e: error) -> string ;
 
     /// A connection to a sql store.
-    type connection = u32;
-    drop-connection: func(b: connection);
-    open-connection: func(name: string) -> result<connection, error>;
+    //type connection = u32;
+    resource connection; 
+    open-connection: func(url: string, create-if-missing: bool) -> result<connection, error>;
+    drop-connection: func(conn: connection);
 }
 
 interface readwrite {
@@ -51,29 +52,35 @@ interface readwrite {
     // implementors can make use of that fact to optimize 
     // the performance of query execution (e.g., using
     // indexes).
-    query: func(c: connection, q: statement) -> result<list<row>, error>;
+    query: func(conn: connection, query: statement) -> result<list<row>, error>;
     
     // exec is for modifying data in the database.
-    exec: func(c: connection, q: statement) -> result<u32, error>;
+    exec: func(conn: connection, query: statement) -> result<u32, error>;
+}
+
+interface sql {
+  type error = u32;
+
+  resource connection; 
+  open-connection: func(url: string, create-if-missing: bool) -> result<connection, error>;
+  drop-connection: func(conn: connection) -> result<_, error>;
+
+  create-table: func(query: string, conn: borrow<connection>);
+
+  select: func(conn: borrow<connection>) -> result<string, error>;
+  insert: func(conn: borrow<connection>, name: string);
+  delete: func(conn: borrow<connection>, name: string);
+
+  print-to-host: func(str: string);
 }
 
 interface handler {
-    use wasi:sockets/udp@0.2.0.{udp-socket};
-    use wasi:sockets/network@0.2.0.{error-code};
-    use types.{error};
-    start-server: func() -> result<udp-socket, error-code>;
-    handle: func(sock: udp-socket) -> result<_, error-code>;
-    socket-receive: func(sock: udp-socket) -> result<tuple<udp-socket, list<u8>>, error-code>;
-    add: func(x: s32, y: s32) -> s32;
+  use sql.{error};
+  handle: func() -> result<_, error>;
 }
 
 world database {
-  import wasi:sockets/udp@0.2.0;
-  import wasi:sockets/network@0.2.0;
-  import wasi:sockets/udp-create-socket@0.2.0;
-  import wasi:sockets/instance-network@0.2.0;
-  import types;
-  import readwrite;
+  import sql;
 
   export handler;
 }
