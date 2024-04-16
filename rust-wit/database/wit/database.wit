@@ -1,63 +1,5 @@
 package backend:database@0.1.0;
 
-interface types {
-    // one single row item
-    record row {
-        field-name: string,
-        value: data-type,
-    }
-    
-    // common data types
-    variant data-type {
-        int32(s32),
-        int64(s64),
-        uint32(u32),
-        uint64(u64),
-        float(float64),
-        double(float64),
-        str(string),
-        boolean(bool),
-        date(string),
-        time(string),
-        timestamp(string),
-        binary(list<u8>),
-        null
-    }
-
-    // allows parameterized queries
-    // e.g., prepare-statement("SELECT * FROM users WHERE name = ? AND age = ?", vec!["John Doe", "32"])
-    type statement = u32;
-    drop-statement: func(s: statement);
-    prepare-statement: func(query: string, params: list<string>) -> result<statement, error>;
-
-    /// An error resource type.
-    /// Currently, this provides only one function to return a string representation
-    /// of the error. In the future, this will be extended to provide more information.
-    // TODO: switch to `resource error { ... }`
-    type error = u32;
-    //drop-error: func(e: error);
-    //trace-error: func(e: error) -> string ;
-
-    /// A connection to a sql store.
-    //type connection = u32;
-    resource connection; 
-    open-connection: func(url: string, create-if-missing: bool) -> result<connection, error>;
-    drop-connection: func(conn: connection);
-}
-
-interface readwrite {
-    use types.{statement, row, error, connection};
-    
-    // query is optimized for querying data, and 
-    // implementors can make use of that fact to optimize 
-    // the performance of query execution (e.g., using
-    // indexes).
-    query: func(conn: connection, query: statement) -> result<list<row>, error>;
-    
-    // exec is for modifying data in the database.
-    exec: func(conn: connection, query: statement) -> result<u32, error>;
-}
-
 interface sql {
   type error = u32;
 
@@ -74,13 +16,35 @@ interface sql {
   print-to-host: func(str: string);
 }
 
-interface handler {
+interface sql-handler {
   use sql.{error};
-  handle: func() -> result<_, error>;
+  db-test: func() -> result<_, error>;
 }
 
+interface tcp {
+  type error = u32;
+
+  resource socket;
+  resource tcp-stream;
+
+  create-socket: func(addr: string) -> result<socket, error>;
+  accept: func(sock: borrow<socket>) -> result<tcp-stream, error>;
+  read: func(sock: borrow<socket>, inc-str: borrow<tcp-stream>) -> result<string, error>;
+  close-stream: func(sock: borrow<socket>, inc-str: tcp-stream);
+}
+
+interface sockets-handler {
+  use tcp.{error, socket};
+  socket-handle: func() -> result<_, error>;
+}
+
+
 world database {
+  //include wasi:http/proxy@0.2.0;
+  include wasi:sockets/imports@0.2.0;
+  import tcp;
   import sql;
 
-  export handler;
+  export sockets-handler;
+  //export sql-handler;
 }
