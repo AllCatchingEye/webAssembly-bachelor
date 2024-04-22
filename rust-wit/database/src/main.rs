@@ -11,11 +11,10 @@ use sql_import::DatabaseHost;
 use tcp_import::TcpHost;
 
 use wasmtime::{
-    component::{bindgen, Component, Linker, ResourceTable},
+    component::{bindgen, Component, Linker},
     Config, Engine, Result, Store,
 };
 
-use wasmtime::component::{ComponentType, Resource};
 use wasmtime_wasi::{bindings::Imports, WasiCtxBuilder, WasiP1Ctx};
 
 pub trait Import {
