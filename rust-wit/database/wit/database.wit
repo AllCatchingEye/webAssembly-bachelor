@@ -1,4 +1,4 @@
-package backend:database@0.1.0;
+package bachelor:backend@0.1.0;
 
 interface sql {
   type error = u32;
@@ -61,6 +61,7 @@ interface tcp {
   variant message-data {
     dht11(dht11-data),
     test-message(test-message-data),
+    none
   }
 
   create-socket: func(addr: string) -> result<socket, error>;
@@ -68,25 +69,25 @@ interface tcp {
   read: func(sock: borrow<socket>, inc-str: borrow<tcp-stream>) -> result<string, error>;
   close-stream: func(sock: borrow<socket>, inc-str: tcp-stream);
 
-  get-message-type: func(message: string) -> result<message-type, error>;
   parse-data: func(message: string) -> result<message-data, error>;
-  parse-operation: func(message: string) -> result<db-operation, error>;
-  get-id: func(message: string) -> result<u64, error>;
 }
 
 interface sockets-handler {
-  use tcp.{error, socket};
+  use tcp.{error, socket, test-message-data};
   socket-handle: func() -> result<_, error>;
   init-db: func() -> result<_, error>;
+  handle-test-message: func(data: test-message-data) -> result<_, error>;
 }
 
+world server {
+  import tcp;
+  include wasi:sockets/imports@0.2.0;
+}
 
 world database {
-  //include wasi:http/proxy@0.2.0;
-  include wasi:sockets/imports@0.2.0;
-  import tcp;
   import sql;
+}
 
+world backend {
   export sockets-handler;
-  //export sql-handler;
 }
