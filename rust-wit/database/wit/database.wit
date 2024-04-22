@@ -3,11 +3,20 @@ package backend:database@0.1.0;
 interface sql {
   type error = u32;
 
+  enum db-operation {
+    select,
+    insert,
+    delete,
+    unknown,
+  }
+
   resource connection; 
   open-connection: func(url: string, create-if-missing: bool) -> result<connection, error>;
   drop-connection: func(conn: connection) -> result<_, error>;
 
   create-table: func(query: string, conn: borrow<connection>);
+
+  execute-query: func(conn: borrow<connection>, query: string, values: option<string>) -> result<option<string>, error>;
 
   select: func(conn: borrow<connection>) -> result<string, error>;
   insert: func(conn: borrow<connection>, name: string);
@@ -22,20 +31,53 @@ interface sql-handler {
 }
 
 interface tcp {
+  use sql.{db-operation};
   type error = u32;
 
   resource socket;
   resource tcp-stream;
 
+  enum message-type {
+    dht11,
+    test,
+    unknown,
+  }
+
+  record test-message-data {
+    message-type: string,
+    operation: db-operation,
+    id: option<u32>,
+    name: option<string>,
+  }
+
+  record dht11-data {
+    message-type: string,
+    operation: db-operation,
+    id: option<u32>,
+    temperature: option<s32>,
+    humidity: option<u32>,
+  }
+
+  variant message-data {
+    dht11(dht11-data),
+    test-message(test-message-data),
+  }
+
   create-socket: func(addr: string) -> result<socket, error>;
   accept: func(sock: borrow<socket>) -> result<tcp-stream, error>;
   read: func(sock: borrow<socket>, inc-str: borrow<tcp-stream>) -> result<string, error>;
   close-stream: func(sock: borrow<socket>, inc-str: tcp-stream);
+
+  get-message-type: func(message: string) -> result<message-type, error>;
+  parse-data: func(message: string) -> result<message-data, error>;
+  parse-operation: func(message: string) -> result<db-operation, error>;
+  get-id: func(message: string) -> result<u64, error>;
 }
 
 interface sockets-handler {
   use tcp.{error, socket};
   socket-handle: func() -> result<_, error>;
+  init-db: func() -> result<_, error>;
 }
 
 

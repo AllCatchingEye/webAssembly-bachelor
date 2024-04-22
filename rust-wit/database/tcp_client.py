@@ -4,8 +4,17 @@ import socket
 def main():
     host = "127.0.0.1"
     port = 8080
-    message = "Hello, server!"
+    message = '{"message_type": "test", "operation": "Insert", "name": "Bob"}'
+    send_message(host, port, message)
 
+    message = '{"message_type": "test", "operation": "Insert", "name": "Alice"}'
+    send_message(host, port, message)
+
+    message = '{"message_type": "test", "operation": "Delete", "name": "Bob"}'
+    send_message(host, port, message)
+
+
+def send_message(host, port, message):
     # Create a TCP socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         # Connect to the server

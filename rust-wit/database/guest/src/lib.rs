@@ -4,8 +4,7 @@ wit_bindgen::generate!({
 });
 
 use backend::database::sql::{
-    create_table, delete, drop_connection, insert, open_connection, print_to_host, select,
-    Error as SqlError,
+    create_table, drop_connection, execute_query, open_connection, print_to_host, DbOperation,
 };
 //use exports::backend::database::sql_handler::Guest as SQLHandleGuest;
 
@@ -17,7 +16,10 @@ use backend::database::sql::{
 // };
 // pub use wasi::io::streams::InputStream;
 
-use backend::database::tcp::{accept, close_stream, create_socket, read, Error as TcpError};
+use backend::database::tcp::{
+    accept, close_stream, create_socket, get_message_type, parse_data, parse_operation, read,
+    Error, MessageData, MessageType,
+};
 
 struct Component;
 
@@ -73,24 +75,88 @@ struct Component;
 // }
 
 impl exports::backend::database::sockets_handler::Guest for Component {
-    fn socket_handle() -> Result<(), TcpError> {
+    fn init_db() -> Result<(), Error> {
+        let conn = open_connection("sqlite:data.db", true)?;
+        create_table("DROP TABLE test", &conn);
+        create_table(
+            "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT)",
+            &conn,
+        );
+        drop_connection(conn)?;
+        Ok(())
+    }
+
+    fn socket_handle() -> Result<(), Error> {
         let addr = "127.0.0.1:8080";
         let socket = create_socket(addr)?;
         print_to_host("Created socket");
+
+        Component::init_db()?;
 
         loop {
             print_to_host("Listening for incoming connection...");
             let stream = accept(&socket)?;
 
-            println!("Reading from stream...");
+            print_to_host("Reading from stream...");
             let message = read(&socket, &stream)?;
 
-            print_to_host(message.as_str());
+            let message_type = get_message_type(&message)?;
 
-            println!("Closing connection...");
+            match message_type {
+                MessageType::Dht11 => {}
+                MessageType::Test => {
+                    print_to_host("Parsing test data");
+                    let data = parse_data(&message)?;
+
+                    let conn = open_connection("sqlite:data.db", true)?;
+                    match data {
+                        MessageData::Dht11(_data) => {}
+                        MessageData::TestMessage(data) => match data.operation {
+                            DbOperation::Select => {
+                                let query = "SELECT * FROM test";
+                                if let Some(results) = execute_query(&conn, query, None)? {
+                                    print_to_host(&format!("Results: \n{}", results));
+                                }
+                            }
+                            DbOperation::Insert => {
+                                let query = "INSERT INTO test (name) VALUES (?)";
+                                let values = vec![data.name];
+                                let val_data =
+                                    serde_json::to_string(&values).expect("Serializing values");
+
+                                execute_query(&conn, query, Some(&val_data))?;
+
+                                let query = "SELECT * FROM test";
+                                if let Some(results) = execute_query(&conn, query, None)? {
+                                    print_to_host(&format!("Results: \n{}", results));
+                                }
+                            }
+                            DbOperation::Delete => {
+                                let query = "DELETE FROM test WHERE name = ?";
+                                let values = vec![data.name];
+
+                                let val_data =
+                                    serde_json::to_string(&values).expect("Serializing values");
+                                execute_query(&conn, query, Some(&val_data))?;
+
+                                let query = "SELECT * FROM test";
+                                if let Some(results) = execute_query(&conn, query, None)? {
+                                    print_to_host(&format!("Results: \n{}", results));
+                                }
+                            }
+                            DbOperation::Unknown => {}
+                        },
+                    }
+                    drop_connection(conn)?;
+                }
+                MessageType::Unknown => print_to_host("Unknown message type"),
+            }
+
+            print_to_host("Closing connection...");
             close_stream(&socket, stream);
         }
     }
+
     // fn socket_handle() -> Result<(), ErrorCode> {
     //     let addr_family = IpAddressFamily::Ipv4;
     //     let sock = create_tcp_socket(addr_family)?;

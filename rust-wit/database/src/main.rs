@@ -9,21 +9,26 @@ bindgen!({
     }
 });
 
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, Read};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 
+use backend::database::sql::DbOperation;
+use backend::database::tcp::{Dht11Data, MessageData, MessageType, TestMessageData};
 use backend::database::{sql, tcp};
 
-use sqlx::prelude::*;
-use sqlx::sqlite::SqliteConnectOptions;
-use sqlx::SqliteConnection;
+use serde::Deserialize;
+use serde_json::Value;
+
+use sqlx::sqlite::{SqliteConnectOptions, SqliteTypeInfo};
+use sqlx::{prelude::*, Column};
+use sqlx::{SqliteConnection, TypeInfo};
 
 use wasmtime::{
     component::{bindgen, Component, Linker},
     Config, Engine, Result, Store,
 };
 
-use wasmtime::component::Resource;
+use wasmtime::component::{ComponentType, Record, Resource, Variant};
 use wasmtime_wasi::{
     bindings::{wasi::filesystem, Imports},
     pipe::MemoryOutputPipe,
@@ -52,6 +57,44 @@ pub struct DatabaseTcpSocket {
 
 pub struct DatabaseTcpStream {
     stream: TcpStream,
+}
+
+#[derive(ComponentType, Deserialize)]
+#[component(enum)]
+enum HostDbOperation {
+    Select,
+    Insert,
+    Delete,
+    Unknown,
+}
+
+fn host_to_guest_db_operation(val: HostDbOperation) -> DbOperation {
+    println!("Mapping Host to Guest DbOperation");
+    match val {
+        HostDbOperation::Select => DbOperation::Select,
+        HostDbOperation::Insert => DbOperation::Insert,
+        HostDbOperation::Delete => DbOperation::Delete,
+        HostDbOperation::Unknown => DbOperation::Unknown,
+    }
+}
+
+#[derive(ComponentType, Deserialize)]
+#[component(record)]
+struct Dht11 {
+    message_type: String,
+    operation: HostDbOperation,
+    id: Option<u32>,
+    temperature: Option<i32>,
+    humidity: Option<u32>,
+}
+
+#[derive(ComponentType, Deserialize)]
+#[component(record)]
+struct TestMessage {
+    message_type: String,
+    operation: HostDbOperation,
+    id: Option<u32>,
+    name: Option<String>,
 }
 
 impl tcp::HostSocket for TcpHost {
@@ -134,6 +177,85 @@ impl tcp::Host for TcpHost {
 
         Ok(())
     }
+
+    async fn get_message_type(
+        &mut self,
+        message: String,
+    ) -> Result<Result<MessageType, u32>, wasmtime::Error> {
+        let json_body: Value = serde_json::from_str(&message).unwrap();
+        let message_type = json_body.get("message_type").and_then(|v| v.as_str());
+
+        match message_type {
+            Some("test") => Ok(Ok(MessageType::Test)),
+            Some("dht11") => Ok(Ok(MessageType::Dht11)),
+            _ => Ok(Ok(MessageType::Unknown)),
+        }
+    }
+
+    async fn parse_operation(
+        &mut self,
+        message: String,
+    ) -> Result<Result<DbOperation, u32>, wasmtime::Error> {
+        let json_body: Value = serde_json::from_str(&message).unwrap();
+        let operation_type = json_body.get("operation").and_then(|v| v.as_str());
+
+        match operation_type {
+            Some("select") => Ok(Ok(DbOperation::Select)),
+            Some("insert") => Ok(Ok(DbOperation::Insert)),
+            Some("delete") => Ok(Ok(DbOperation::Delete)),
+            _ => Ok(Ok(DbOperation::Unknown)),
+        }
+    }
+
+    async fn parse_data(
+        &mut self,
+        message: String,
+    ) -> Result<Result<MessageData, u32>, wasmtime::Error> {
+        let json_body: Value = serde_json::from_str(&message).unwrap();
+        let message_type = json_body.get("message_type").and_then(|v| v.as_str());
+
+        let message_data: MessageData;
+        match message_type {
+            Some("test") => {
+                println!("Building host test message");
+                let test_message: TestMessage = serde_json::from_value(json_body)?;
+                println!("Building guest test message");
+                let guest_test_message = TestMessageData {
+                    message_type: test_message.message_type,
+                    operation: host_to_guest_db_operation(test_message.operation),
+                    id: test_message.id,
+                    name: test_message.name,
+                };
+
+                message_data = MessageData::TestMessage(guest_test_message);
+                Ok(Ok(message_data))
+            }
+            Some("dht11") => {
+                let dht11_message: Dht11 = serde_json::from_value(json_body)?;
+                let guest_dht11_message = Dht11Data {
+                    message_type: dht11_message.message_type,
+                    operation: host_to_guest_db_operation(dht11_message.operation),
+                    id: dht11_message.id,
+                    temperature: dht11_message.temperature,
+                    humidity: dht11_message.humidity,
+                };
+
+                message_data = MessageData::Dht11(guest_dht11_message);
+                Ok(Ok(message_data))
+            }
+            _ => Ok(Err(0)),
+        }
+    }
+
+    async fn get_id(&mut self, message: String) -> Result<Result<u64, u32>, wasmtime::Error> {
+        let json_body: Value = serde_json::from_str(&message).unwrap();
+        let id = json_body.get("id").and_then(|v| v.as_u64());
+
+        match id {
+            None => Ok(Err(0)),
+            Some(id) => Ok(Ok(id)),
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -181,6 +303,76 @@ impl sql::Host for DatabaseHost {
         let host_conn = self.res_table.delete(conn)?;
         host_conn.connection.close().await?;
         Ok(Ok(()))
+    }
+
+    async fn execute_query(
+        &mut self,
+        conn: Resource<DatabaseConnectionHost>,
+        query: String,
+        values: Option<String>,
+    ) -> Result<Result<Option<String>, u32>, wasmtime::Error> {
+        let host_conn = self.res_table.get_mut(&conn)?;
+
+        let mut prepared_query = sqlx::query(&query);
+
+        if let Some(values) = values {
+            println!("Binding values...");
+            let parsed_values: Vec<Value> = serde_json::from_str(&values)?;
+            println!("{:#?}", parsed_values);
+            for value in parsed_values {
+                let binding_value = match value {
+                    Value::String(s) => s,
+                    Value::Number(n) => n.to_string(),
+                    _ => return Err(wasmtime::Error::msg("Error while binding values")),
+                };
+                prepared_query = prepared_query.bind(binding_value);
+            }
+        }
+
+        println!("Executing query...");
+        let query_result = prepared_query.fetch_all(&mut host_conn.connection).await;
+
+        match query_result {
+            Ok(rows) => {
+                println!("Returning query results...");
+                let mut query_result: String = String::new();
+                for row in rows {
+                    let columns = row.columns();
+                    for column in columns {
+                        let value: Option<String> = match column.type_info().name() {
+                            "INTEGER" => {
+                                // Decode as Option<i32> for INTEGER columns
+                                row.try_get::<Option<i32>, _>(column.name())?
+                                    .map(|v| v.to_string())
+                            }
+                            _ => {
+                                // Decode as Option<String> for other column types
+                                row.try_get::<Option<String>, _>(column.name())?
+                            }
+                        };
+                        match value {
+                            Some(v) => {
+                                let row_str = &format!("Column {}: {}\n", column.name(), v);
+                                query_result.push_str(row_str);
+                            }
+                            None => {
+                                let row_str = &format!("Column {}: NULL\n", column.name());
+                                query_result.push_str(row_str);
+                            }
+                        }
+                    }
+                }
+                Ok(Ok(Some(query_result)))
+            }
+            Err(sqlx::Error::RowNotFound) => {
+                println!("Executed query");
+                Ok(Ok(None))
+            }
+            Err(err) => {
+                eprintln!("Error executing query: {}", err);
+                Ok(Err(1))
+            }
+        }
     }
 
     async fn select(
