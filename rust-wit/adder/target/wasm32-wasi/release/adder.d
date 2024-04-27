@@ -1,1 +1,0 @@
-/home/envy/Development/webAssembly-bachelor/rust-wit/adder/target/wasm32-wasi/release/adder.wasm: /home/envy/Development/webAssembly-bachelor/rust-wit/adder/src/bindings.rs /home/envy/Development/webAssembly-bachelor/rust-wit/adder/src/lib.rs
