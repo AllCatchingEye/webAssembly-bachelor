@@ -1,0 +1,39 @@
+workspace = { members = ["guest"] }
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[package.metadata.component.target]
+path = "./wit"
+world = "backend"
+
+[dependencies]
+anyhow = "1.0.81"
+async-trait = "0.1.79"
+bytes = "1.6.0"
+http = "1.1.0"
+http-body = "1.0.0"
+http-body-util = "0.1.1"
+http-types = "2.12.0"
+hyper = "1.2.0"
+serde = "1.0.197"
+serde_json = "1.0.116"
+sqlx = { version = "0.7.4", features = ["sqlite"] }
+tokio = { version = "1.37.0", features = ["rt-multi-thread", "macros"] }
+wasmtime = "19.0.0"
+wasmtime-wasi = "19.0.0"
+wit-bindgen = "0.24.0"
+wit-component = "0.202.0"
+
+[package.metadata.component.target.dependencies]
+"wasi:http" = { path = "wit/deps/http" }
+"wasi:clocks" = { path = "wit/deps/clocks" }
+"wasi:io" = { path = "wit/deps/io" }
+"wasi:random" = { path = "wit/deps/random" }
+"wasi:cli" = { path = "wit/deps/cli" }
+"wasi:filesystem" = { path = "wit/deps/filesystem" }
+"wasi:sockets" = { path = "wit/deps/sockets" }
