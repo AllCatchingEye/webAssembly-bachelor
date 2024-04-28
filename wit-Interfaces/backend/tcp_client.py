@@ -2,7 +2,7 @@ import socket
 
 
 def main():
-    host = "127.0.0.1"
+    host = "192.168.0.217:8080"
     port = 8080
     message = '{"message_type": "test", "operation": "Insert", "name": "Bob"}'
     send_message(host, port, message)
@@ -22,10 +22,6 @@ def send_message(host, port, message):
 
         # Send the message
         s.sendall(message.encode())
-
-        # Receive data from the server (if expected)
-        # response = s.recv(1024)
-        # print("Received:", response.decode())
 
     print("Message sent to server:", message)
 

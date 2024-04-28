@@ -26,6 +26,7 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
     }
 
     fn handle_test_message(data: TestMessageData) -> Result<(), Error> {
+        print_to_host("Handling test message...");
         let conn = open_connection("sqlite:data.db", true)?;
         match data.operation {
             DbOperation::Select => {
@@ -65,7 +66,7 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
     }
 
     fn socket_handle() -> Result<(), Error> {
-        let addr = "127.0.0.1:8080";
+        let addr = "192.168.0.217:8080";
         let socket = create_socket(addr)?;
         print_to_host("Created socket");
 
@@ -78,6 +79,7 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
             print_to_host("Reading from stream...");
             let message = read(&socket, &stream)?;
 
+            print_to_host("Parsing data...");
             let data = parse_data(&message)?;
             match data {
                 MessageData::Dht11(_data) => {}
