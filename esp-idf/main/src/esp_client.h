@@ -1,4 +1,5 @@
 #include "esp_http_client.h"
 #include "sensors.h"
 
-void send_sensor_values(dht11_values_t dht11_values);
+void test_tcp(void);
+void start_tcp_client(char *payload);
