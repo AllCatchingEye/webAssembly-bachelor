@@ -8,19 +8,12 @@ esp-idf/main/wasm/process_data/build/
 esp-idf/main/wasm/add/build/
 esp-idf/main/wasm/client/CMakeFiles/
 
-rust-wit/app/.vscode/
-rust-wit/app/.idea/
-rust-wit/app/target/
-rust-wit/app/src/bindings.rs
+wit-Interfaces/backend/.vscode/
+wit-Interfaces/backend/.idea/
+wit-Interfaces/backend/target/
+wit-Interfaces/backend/src/bindings.rs
+wit-Interfaces/backend/guest-component.wasm
+wit-Interfaces/backend/sqlite:data.db
 
-rust-wit/server/.vscode/
-rust-wit/server/.idea/
-rust-wit/server/target/
-rust-wit/server/src/bindings.rs
-
-rust-wit/database/.vscode/
-rust-wit/database/.idea/
-rust-wit/database/target/
-rust-wit/database/src/bindings.rs
 
 /wit-deps/
