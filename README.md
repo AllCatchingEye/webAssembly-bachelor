@@ -1,5 +1,28 @@
 # webAssembly-bachelor
 
+## Running the example
+
+### Esp-idf board
+
+To start the esp-idf simply run ./esp-idf/build_and_run.sh
+
+### Backend server written in rust
+
+To start the backend server written in wit run ./wit-Interfaces/backend/build_and_run.sh
+
+To test the backend server locally run ./wit-Interfaces/backend/tcp_client.py while the backend server is running
+To test the backend server with an esp-board in the same network run ./esp-idf/build_and_run.sh while the backend server is running
+
+The ip adresses und port number sed by server and client might need to be adjusted in 
+
+```
+* ./esp-idf/main/src/esp_client.c
+* ./wit-Interfaces/backend/tcp_client.py
+* ./wit-Interfaces/backend/guest/src/lib.rs
+```
+
+before running the files mentioned above
+
 ## Exposee:
 
 ### Problemstellung
