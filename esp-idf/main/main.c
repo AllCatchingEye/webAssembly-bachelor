@@ -6,7 +6,9 @@
 #include "bh_platform.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
+#include "platform_common.h"
 #include "wasm_export.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -27,6 +29,9 @@
 #define IWASM_MAIN_STACK_SIZE 4096
 #endif
 
+#define QUEUE_SIZE 4
+#define MSG_SIZE 128
+
 void *iwasm_main(void *arg) {
   (void)arg; /* unused */
 
@@ -36,27 +41,44 @@ void *iwasm_main(void *arg) {
 
   wasm_start(&wasm, &wasm_file);
 
-  initilize_sensors();
+  // initilize_sensors();
 
   wifi_connect();
 
-  int sleep_interval = 1;
-  while (1) {
-    dht11_values_t dht11_values = read_dht11_sensor();
+  char msg_buff[128];
+  QueueHandle_t queue = xQueueCreate(4, sizeof(msg_buff));
 
-    uint32 args[3] = {dht11_values.temperature, dht11_values.humidity,
-                      dht11_values.status};
-    wasm_run_func(&wasm, "process_sensor_values", 3, args);
+  pthread_t tcp_thread;
+  int res;
+
+  pthread_attr_t tcp_attr;
+  pthread_attr_init(&tcp_attr);
+  pthread_attr_setdetachstate(&tcp_attr, PTHREAD_CREATE_JOINABLE);
+  pthread_attr_setstacksize(&tcp_attr, IWASM_MAIN_STACK_SIZE);
+  res = pthread_create(&tcp_thread, &tcp_attr, tcp_client, (void *)queue);
+  assert(res == 0);
+
+  int sleep_interval = 10;
+  while (1) {
+    // dht11_values_t dht11_values = read_dht11_sensor();
+    //
+    // uint32 args[3] = {dht11_values.temperature, dht11_values.humidity,
+    //                   dht11_values.status};
+    // wasm_run_func(&wasm, "process_sensor_values", 3, args);
 
     if (connected_to_wifi == true) {
+      test_tcp(queue);
       ESP_LOGI(LOG_TAG, "Connected to wifi, sending sensor values");
-      send_sensor_values(dht11_values);
+      // send_sensor_values(dht11_values);
     } else {
       ESP_LOGI(LOG_TAG, "Can't send sensor values, not connected to wifi");
     }
 
     sleep(sleep_interval);
   }
+
+  res = pthread_join(tcp_thread, NULL);
+  assert(res == 0);
 
   wasm_end(&wasm);
 
