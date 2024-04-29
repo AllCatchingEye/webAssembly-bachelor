@@ -20,6 +20,13 @@
 #include "src/wasm_helper_functions.h"
 #include "src/wifi.h"
 
+#ifndef PROCESS_DATA_H
+#define PROCESS_DATA_H
+
+#include "wasm/process_data/process_data.h"
+
+#endif /* HEADER_FILE_NAME_H */
+
 #include "c_arrays/process_data.h"
 #include "c_arrays/test_wasm.h"
 
@@ -45,8 +52,7 @@ void *iwasm_main(void *arg) {
 
   wifi_connect();
 
-  char msg_buff[128];
-  QueueHandle_t queue = xQueueCreate(4, sizeof(msg_buff));
+  FifoQueue_t queue = fifo_init();
 
   pthread_t tcp_thread;
   int res;
@@ -55,7 +61,7 @@ void *iwasm_main(void *arg) {
   pthread_attr_init(&tcp_attr);
   pthread_attr_setdetachstate(&tcp_attr, PTHREAD_CREATE_JOINABLE);
   pthread_attr_setstacksize(&tcp_attr, IWASM_MAIN_STACK_SIZE);
-  res = pthread_create(&tcp_thread, &tcp_attr, tcp_client, (void *)queue);
+  res = pthread_create(&tcp_thread, &tcp_attr, tcp_client, (void *)&queue);
   assert(res == 0);
 
   int sleep_interval = 10;
@@ -67,7 +73,7 @@ void *iwasm_main(void *arg) {
     // wasm_run_func(&wasm, "process_sensor_values", 3, args);
 
     if (connected_to_wifi == true) {
-      test_tcp(queue);
+      test_tcp(&queue);
       ESP_LOGI(LOG_TAG, "Connected to wifi, sending sensor values");
       // send_sensor_values(dht11_values);
     } else {
