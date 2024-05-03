@@ -1,0 +1,1 @@
+/home/envy/Development/webAssembly-bachelor/wit-Interfaces/c_example/add_run/target/wasm32-wasi/debug/add_run.wasm: /home/envy/Development/webAssembly-bachelor/wit-Interfaces/c_example/add_run/src/bindings.rs /home/envy/Development/webAssembly-bachelor/wit-Interfaces/c_example/add_run/src/main.rs

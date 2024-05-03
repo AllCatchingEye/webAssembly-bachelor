@@ -1,5 +1,6 @@
 #include "process_data.h"
 #include "stdio.h"
+// #include "wasm_export.h"
 
 FifoQueue_t fifo_init() {
   FifoQueue_t queue;
@@ -34,9 +35,10 @@ char *get(FifoQueue_t *queue) {
   return msg;
 }
 
-void process_sensor_values(FifoQueue_t *queue, int temperature, int humidity,
-                           int status) {
+void process_sensor_values(wasm_exec_env_t exec_env, FifoQueue_t *queue,
+                           int temperature, int humidity, int status) {
   if (valid_values(temperature, humidity) && valid_status(status)) {
+    // wasm_module_t module_inst = wasm_runtime_get_module_inst(exec_env);
 
     char *msg = build_message(temperature, humidity);
     put(queue, msg);
@@ -73,7 +75,7 @@ char *build_message(int temperature, int humidity) {
   char *msg;
   asprintf(&msg,
            "\{\"message_type\": \"dht11\", \"operation\": \"Insert\", "
-           "\"temperature\": \"%d\", \"humidity\": \"%d\"}",
+           "\"temperature\": %d, \"humidity\": %d}",
            temperature, humidity);
 
   return msg;

@@ -1,0 +1,9 @@
+package example:component@0.1.0;
+
+interface adder {
+  add: func(x: s32, y: s32) -> s32;
+}
+
+world example {
+  export adder;
+}

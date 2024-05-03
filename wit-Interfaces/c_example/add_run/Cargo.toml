@@ -1,0 +1,17 @@
+[package]
+name = "add_run"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata.component]
+package = "component:add-run"
+
+[package.metadata.component.target]
+path = "./wit/add-run.wit"
+
+[package.metadata.component.target.dependencies]
+"example:component" = { path = "../lib-component/wit/add.wit" }
+
+[dependencies]
+bitflags = "2.5.0"
+wit-bindgen-rt = "0.24.0"

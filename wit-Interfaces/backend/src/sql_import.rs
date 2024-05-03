@@ -13,7 +13,7 @@ use bachelor::backend::sql;
 use serde_json::Value;
 
 use sqlx::sqlite::{SqliteConnectOptions, SqliteRow};
-use sqlx::{prelude::*, Column};
+use sqlx::{prelude::*, Column, Execute};
 use sqlx::{SqliteConnection, TypeInfo};
 
 use wasmtime::{
@@ -106,11 +106,12 @@ impl sql::Host for DatabaseHost {
                     Value::Number(n) => n.to_string(),
                     _ => return Err(wasmtime::Error::msg("Error while binding values")),
                 };
+                println!("Binding values: {}", binding_value);
                 prepared_query = prepared_query.bind(binding_value);
             }
         }
 
-        println!("Executing query...");
+        println!("Executing query: {:#?}", prepared_query.sql());
         let query_result = prepared_query.fetch_all(&mut host_conn.connection).await;
 
         match query_result {

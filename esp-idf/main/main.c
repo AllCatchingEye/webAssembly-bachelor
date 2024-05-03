@@ -8,6 +8,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "lib_export.h"
 #include "platform_common.h"
 #include "wasm_export.h"
 #include <stdint.h>
@@ -27,6 +28,7 @@
 
 #endif /* HEADER_FILE_NAME_H */
 
+#include "c_arrays/add_app.h"
 #include "c_arrays/process_data.h"
 #include "c_arrays/test_wasm.h"
 
@@ -43,48 +45,60 @@ void *iwasm_main(void *arg) {
   (void)arg; /* unused */
 
   wasm_t wasm = initilize_wasm();
+
+  static NativeSymbol native_symbols[] = {
+      // EXPORT_WASM_API_WITH_SIG(process_sensor_values, "(riii)")
+  };
+  // wasm_file_t wasm_file =
+  //     initilize_wasm_file((uint8_t *)process_data, sizeof(process_data));
   wasm_file_t wasm_file =
-      initilize_wasm_file((uint8_t *)process_data, sizeof(process_data));
+      initilize_wasm_file((uint8_t *)add_app, sizeof(add_app));
+  wasm_start(&wasm, &wasm_file, native_symbols);
 
-  wasm_start(&wasm, &wasm_file);
-
-  // initilize_sensors();
+  initilize_sensors();
 
   wifi_connect();
 
   FifoQueue_t queue = fifo_init();
 
-  pthread_t tcp_thread;
-  int res;
+  // /* creat an execution environment to execute the WASM functions */
+  // ESP_LOGI(LOG_TAG, "Create exec env for func %s", "process_sensor_values");
+  // wasm_exec_env_t exec_env =
+  //     wasm_runtime_create_exec_env(wasm.wasm_module_inst, wasm.stack_size);
 
-  pthread_attr_t tcp_attr;
-  pthread_attr_init(&tcp_attr);
-  pthread_attr_setdetachstate(&tcp_attr, PTHREAD_CREATE_JOINABLE);
-  pthread_attr_setstacksize(&tcp_attr, IWASM_MAIN_STACK_SIZE);
-  res = pthread_create(&tcp_thread, &tcp_attr, tcp_client, (void *)&queue);
-  assert(res == 0);
+  // pthread_t tcp_thread;
+  // int res;
+  //
+  // pthread_attr_t tcp_attr;
+  // pthread_attr_init(&tcp_attr);
+  // pthread_attr_setdetachstate(&tcp_attr, PTHREAD_CREATE_JOINABLE);
+  // pthread_attr_setstacksize(&tcp_attr, IWASM_MAIN_STACK_SIZE);
+  // res = pthread_create(&tcp_thread, &tcp_attr, tcp_client, (void *)&queue);
+  // assert(res == 0);
 
   int sleep_interval = 10;
   while (1) {
     // dht11_values_t dht11_values = read_dht11_sensor();
-    //
-    // uint32 args[3] = {dht11_values.temperature, dht11_values.humidity,
-    //                   dht11_values.status};
-    // wasm_run_func(&wasm, "process_sensor_values", 3, args);
 
-    if (connected_to_wifi == true) {
-      test_tcp(&queue);
-      ESP_LOGI(LOG_TAG, "Connected to wifi, sending sensor values");
-      // send_sensor_values(dht11_values);
-    } else {
-      ESP_LOGI(LOG_TAG, "Can't send sensor values, not connected to wifi");
-    }
+    // if (connected_to_wifi == true) {
+    //   process_sensor_values(exec_env, &queue, dht11_values.temperature,
+    //                         dht11_values.humidity, dht11_values.status);
+    //   // test_tcp(&queue);
+    //   ESP_LOGI(LOG_TAG, "Connected to wifi, sending sensor values");
+    //   // send_sensor_values(dht11_values);
+    // } else {
+    //   ESP_LOGI(LOG_TAG, "Can't send sensor values, not connected to wifi");
+    // }
+    ESP_LOGI(LOG_TAG,
+             "Trying to call add function from component add_component...");
+
+    wasm_application_execute_main(wasm.wasm_module_inst, 0, NULL);
 
     sleep(sleep_interval);
   }
 
-  res = pthread_join(tcp_thread, NULL);
-  assert(res == 0);
+  // res = pthread_join(tcp_thread, NULL);
+  // assert(res == 0);
 
   wasm_end(&wasm);
 

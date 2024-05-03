@@ -40,5 +40,6 @@ build_c_array() {
 	echo "Done."
 }
 
-build_c_array ./add/ ./add/build/add.wasm add
+# build_c_array ./add/ ./add/build/add.wasm add
 build_c_array ./process_data/ ./process_data/build/process_data.wasm process_data
+python wasm_c_array.py ./add-app.wasm add_app

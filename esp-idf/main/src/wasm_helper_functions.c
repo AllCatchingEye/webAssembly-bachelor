@@ -1,6 +1,7 @@
 
 #include "wasm_helper_functions.h"
 #include "esp_log.h"
+#include "lib_export.h"
 #include <stdio.h>
 
 wasm_file_t initilize_wasm_file(uint8_t *data, size_t size) {
@@ -39,7 +40,8 @@ RuntimeInitArgs wasm_init_args() {
   return init_args;
 }
 
-void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file) {
+void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
+                NativeSymbol *native_symbols) {
   /* setup variables for instantiating and running the wasm module */
 
   char error_buf[128];
@@ -50,6 +52,13 @@ void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file) {
   /* initialize runtime environment */
   if (!wasm_runtime_full_init(&init_args)) {
     ESP_LOGE(LOG_TAG, "Init runtime failed.");
+    return;
+  }
+
+  int n_native_symbols = sizeof(*native_symbols) / sizeof(NativeSymbol);
+  if (!wasm_runtime_register_natives("env", native_symbols, n_native_symbols)) {
+
+    ESP_LOGE(LOG_TAG, "Registering native functions failed");
     return;
   }
 

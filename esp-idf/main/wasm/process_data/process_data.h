@@ -1,3 +1,5 @@
+#include "wasm_export.h"
+
 #define MAX_TEMPERATURE 50
 #define MAX_HUMIDITY 100
 
@@ -19,8 +21,8 @@ int isEmpty(FifoQueue_t queue);
 int put(FifoQueue_t *queue, char *msg);
 char *get(FifoQueue_t *queue);
 
-void process_sensor_values(FifoQueue_t *queue, int temperature, int humidity,
-                           int status);
+void process_sensor_values(wasm_exec_env_t exec_env, FifoQueue_t *queue,
+                           int temperature, int humidity, int status);
 
 int valid_values(int temperature, int humidity);
 int valid_status(int status);

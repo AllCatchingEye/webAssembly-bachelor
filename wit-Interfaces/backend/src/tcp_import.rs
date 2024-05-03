@@ -67,7 +67,7 @@ struct Dht11 {
     operation: HostDbOperation,
     id: Option<u32>,
     temperature: Option<i32>,
-    humidity: Option<u32>,
+    humidity: Option<i32>,
 }
 
 #[derive(ComponentType, Deserialize)]
