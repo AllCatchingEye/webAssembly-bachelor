@@ -1,102 +1,88 @@
 #include "process_data.h"
 #include "stdio.h"
-// #include "wasm_export.h"
+#include <unistd.h>
 
-FifoQueue_t fifo_init() {
-  FifoQueue_t queue;
-  queue.read = 0;
-  queue.write = 0;
-  return queue;
+dht11_values_t read_dht11_sensor() {
+  printf("Reading DHT11 sensor values...\n");
+  dht11_values_t dht11_values;
+  dht11_values.temperature = read_temperature();
+  dht11_values.humidity = read_humidity();
+  dht11_values.status = read_status();
+  printf("Sensor read complete: Temperature: %d, Humidity: %d, Status: %d\n",
+         dht11_values.temperature, dht11_values.humidity, dht11_values.status);
+  return dht11_values;
 }
 
-int isFull(FifoQueue_t queue) {
-  return ((queue.write + 1) % BUFFER_SIZE == queue.read);
-}
+void monitor_sensors() {
+  printf("Initializing FIFO...\n");
+  fifo_init();
 
-int isEmpty(FifoQueue_t queue) { return (queue.read == queue.write); }
+  // printf("Starting tcp server...\n");
+  // start_server();
 
-int put(FifoQueue_t *queue, char *msg) {
-  if (isFull(*queue)) {
-    printf("Error: Queue is full.\n");
-    return -1;
+  int sleep_interval = 100000;
+  while (1) {
+    printf("Checking WiFi status...\n");
+    if (get_wifi_status() == TRUE) {
+      printf("WiFi connected. Reading sensor values...\n");
+      dht11_values_t dht11_values = read_dht11_sensor();
+      printf("Sensor values read:\n");
+      printf("Temperature: %d, Humidity: %d, Status: %d\n",
+             dht11_values.temperature, dht11_values.humidity,
+             dht11_values.status);
+
+      if (valid_values(dht11_values) && valid_status(dht11_values)) {
+        printf("Sensor values are valid. Building message...\n");
+        char msg[200];
+        build_message(msg, sizeof(msg), dht11_values.temperature,
+                      dht11_values.humidity);
+
+        printf("Message built:\n%s\n", msg);
+        printf("Putting message into queue...\n");
+        put(msg);
+      } else {
+        printf("Sensor values are invalid or status is not ok. Skipping "
+               "sending...\n");
+      }
+    } else {
+      printf("WiFi not connected. Skipping sensor read...\n");
+    }
+
+    printf("Sleeping for %d seconds...\n", sleep_interval);
+    sleep(sleep_interval);
   }
-  queue->data[queue->write] = msg;
-  queue->write = (queue->write + 1) % BUFFER_SIZE;
-  return 0;
 }
 
-char *get(FifoQueue_t *queue) {
-  if (isEmpty(*queue)) {
-    printf("Error: Queue is empty.\n");
-    return NULL;
-  }
-  char *msg = queue->data[queue->read];
-  queue->read = (queue->read + 1) % BUFFER_SIZE;
-  return msg;
-}
-
-void process_sensor_values(wasm_exec_env_t exec_env, FifoQueue_t *queue,
-                           int temperature, int humidity, int status) {
-  if (valid_values(temperature, humidity) && valid_status(status)) {
-    // wasm_module_t module_inst = wasm_runtime_get_module_inst(exec_env);
-
-    char *msg = build_message(temperature, humidity);
-    put(queue, msg);
-  }
-}
-
-int valid_values(int temperature, int humidity) {
-  if (temperature > MAX_TEMPERATURE || humidity > MAX_HUMIDITY) {
+int valid_values(dht11_values_t dht11_values) {
+  printf("Validating sensor values...\n");
+  if (dht11_values.temperature > MAX_TEMPERATURE ||
+      dht11_values.humidity > MAX_HUMIDITY) {
+    printf("Invalid values: Temperature: %d, Humidity: %d\n",
+           dht11_values.temperature, dht11_values.humidity);
     return 0;
-  } else if (temperature < MIN_TEMPERATURE || humidity < MIN_HUMIDITY) {
+  } else if (dht11_values.temperature < MIN_TEMPERATURE ||
+             dht11_values.humidity < MIN_HUMIDITY) {
+    printf("Invalid values: Temperature: %d, Humidity: %d\n",
+           dht11_values.temperature, dht11_values.humidity);
     return 0;
   } else {
+    printf("Values are valid: Temperature: %d, Humidity: %d\n",
+           dht11_values.temperature, dht11_values.humidity);
     return 1;
   }
 }
 
-int valid_status(int status) {
-  switch (status) {
+int valid_status(dht11_values_t dht11_values) {
+  printf("Validating sensor status...\n");
+  switch (dht11_values.status) {
   case -1:
-    printf("Status code: %d - DHT11_TIMEOUT_ERROR", status);
+    printf("Status code: %d - DHT11_TIMEOUT_ERROR\n", dht11_values.status);
     return 0;
-    break;
   case -2:
-    printf("Status code: %d - DHT11_CRC_ERROR", status);
+    printf("Status code: %d - DHT11_CRC_ERROR\n", dht11_values.status);
     return 0;
-    break;
   default:
+    printf("Status code: %d - Status OK\n", dht11_values.status);
     return 1;
-    break;
   }
 }
-
-char *build_message(int temperature, int humidity) {
-  char *msg;
-  asprintf(&msg,
-           "\{\"message_type\": \"dht11\", \"operation\": \"Insert\", "
-           "\"temperature\": %d, \"humidity\": %d}",
-           temperature, humidity);
-
-  return msg;
-}
-
-// void process_humidity(int humidity) {
-//   if (humidity > 60) {
-//     printf("Humidity is too high with %d. Ventilate the room.\n", humidity);
-//   } else if (humidity < 40) {
-//     printf("Humidity is too low with %d. Moisturize the room.\n", humidity);
-//   } else {
-//     printf("Humidity is at a good value with %d.\n", humidity);
-//   }
-// }
-//
-// void process_temperature(int temperature) {
-//   if (temperature > 30) {
-//     printf("Temperature is too high with %d. Cool the room.\n", temperature);
-//   } else if (temperature < 20) {
-//     printf("Temperature is too low with %d. Heat the room.\n", temperature);
-//   } else {
-//     printf("Temperature is at a good value with %d.\n", temperature);
-//   }
-// }

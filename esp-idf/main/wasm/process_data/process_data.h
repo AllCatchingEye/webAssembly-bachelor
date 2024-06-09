@@ -1,5 +1,3 @@
-#include "wasm_export.h"
-
 #define MAX_TEMPERATURE 50
 #define MAX_HUMIDITY 100
 
@@ -8,26 +6,34 @@
 
 #define BUFFER_SIZE 10
 
+#define TRUE 1
+#define FALSE 0
+
 typedef struct {
-  char *data[BUFFER_SIZE];
-  int read;
-  int write;
-} FifoQueue_t;
+  int temperature;
+  int humidity;
+  int status;
+} dht11_values_t;
 
-FifoQueue_t fifo_init();
-int isFull(FifoQueue_t queue);
-int isEmpty(FifoQueue_t queue);
+dht11_values_t read_dht11_sensor();
 
-int put(FifoQueue_t *queue, char *msg);
-char *get(FifoQueue_t *queue);
+int get_wifi_status();
 
-void process_sensor_values(wasm_exec_env_t exec_env, FifoQueue_t *queue,
-                           int temperature, int humidity, int status);
+int valid_values(dht11_values_t dht11_values);
+int valid_status(dht11_values_t dht11_values);
 
-int valid_values(int temperature, int humidity);
-int valid_status(int status);
+void monitor_sensors();
 
-char *build_message(int temperature, int humidity);
+/*** Exposed native APIs ***/
 
-/* void process_temperature(int temperature); */
-/* void process_humidity(int humidity); */
+void start_server();
+
+int read_temperature();
+int read_humidity();
+int read_status();
+
+void build_message(char *buffer, int buffer_len, int temperature, int humidity);
+
+/*** Message Queue ***/
+void fifo_init();
+int put(char *msg);

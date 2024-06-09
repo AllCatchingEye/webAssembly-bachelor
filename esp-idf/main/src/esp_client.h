@@ -1,12 +1,11 @@
 #ifndef PROCESS_DATA_H
 #define PROCESS_DATA_H
 
-#include "../wasm/process_data/process_data.h"
-
 #endif /* HEADER_FILE_NAME_H */
 
 #include "esp_http_client.h"
-#include "sensors.h"
 
-void test_tcp(FifoQueue_t *queue);
+void test_tcp();
 void *tcp_client(void *arg);
+// void start_server();
+// void start_server_wrapper(wasm_exec_env_t exec_env);

@@ -5,11 +5,11 @@
  */
 #include "esp_client.h"
 #include "esp_log.h"
-#include "esp_netif.h"
-#include "sdkconfig.h"
+#include "fifo.h"
+#include "wifi.h"
 #include <arpa/inet.h>
-#include <errno.h>
 #include <netdb.h> // struct addrinfo
+#include <pthread.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -20,8 +20,6 @@
 static const char *TAG = "CLIENT";
 
 void *tcp_client(void *arg) {
-  FifoQueue_t *queue = (FifoQueue_t *)arg;
-
   char host_ip[] = HOST_IP_ADDR;
 
   struct sockaddr_in dest_addr;
@@ -32,9 +30,8 @@ void *tcp_client(void *arg) {
   int ip_protocol = IPPROTO_IP;
 
   while (1) {
-    if (!isEmpty(*queue)) {
-      char *payload = get(queue);
-
+    if (!isEmpty()) {
+      char *payload = get();
       ESP_LOGI(TAG, "Read message:\n%s", payload);
 
       ESP_LOGI(TAG, "Message in queue, creating socket...");
@@ -49,6 +46,7 @@ void *tcp_client(void *arg) {
           connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
       if (conn_err != 0) {
         ESP_LOGE(TAG, "Socket unable to connect: errno %d", errno);
+        close(sock);
         continue;
       }
       ESP_LOGI(TAG, "Successfully connected");
@@ -56,26 +54,37 @@ void *tcp_client(void *arg) {
       int send_err = send(sock, payload, strlen(payload), 0);
       if (send_err < 0) {
         ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+      } else {
+        ESP_LOGI(TAG, "Message sent successfully");
       }
 
       ESP_LOGI(TAG, "Shutting down socket and restarting...");
       shutdown(sock, 0);
       close(sock);
+    } else {
+      ESP_LOGI(TAG, "Queue is empty, nothing to send");
     }
+    sleep(1);
   }
   return NULL;
 }
 
-void test_tcp(FifoQueue_t *queue) {
+void test_tcp() {
   char *payload = "{\"message_type\": \"test\", \"operation\": \"Insert\", "
                   "\"name\": \"Bob\"}";
-  put(queue, payload);
+  put(payload);
 
   payload = "{\"message_type\": \"test\", \"operation\": \"Insert\", \"name\": "
             "\"Alice\"}";
-  put(queue, payload);
+  put(payload);
 
   payload = "{\"message_type\": \"test\", \"operation\": \"Delete\", \"name\": "
             "\"Bob\"}";
-  put(queue, payload);
+  put(payload);
 }
+
+// void start_server() {}
+// void start_server_wrapper(wasm_exec_env_t exec_env) { start_server(); }
+
+// void start_server() {}
+// void start_server_wrapper(wasm_exec_env_t exec_env) { start_server(); }

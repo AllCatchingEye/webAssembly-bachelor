@@ -67,23 +67,23 @@
 #define DEFAULT_AUTHMODE WIFI_AUTH_OPEN
 #endif /*CONFIG_EXAMPLE_FAST_SCAN_THRESHOLD*/
 
-bool connected_to_wifi = false;
+int connected_to_wifi = FALSE;
 static const char *TAG = "scan";
 
 void event_handler(void *arg, esp_event_base_t event_base, int32_t event_id,
                    void *event_data) {
   if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
-    connected_to_wifi = false;
+    connected_to_wifi = FALSE;
     esp_wifi_connect();
   } else if (event_base == WIFI_EVENT &&
              event_id == WIFI_EVENT_STA_DISCONNECTED) {
-    connected_to_wifi = false;
+    connected_to_wifi = FALSE;
     esp_wifi_connect();
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
     ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
     ESP_LOGI(TAG, "Connected to wifi.");
-    connected_to_wifi = true;
+    connected_to_wifi = TRUE;
   }
 }
 
@@ -121,8 +121,14 @@ void fast_scan(void) {
   ESP_ERROR_CHECK(esp_wifi_start());
 }
 
+int get_wifi_status() { return connected_to_wifi; }
+
+int get_wifi_status_wrapper(wasm_exec_env_t exec_env) {
+  return get_wifi_status();
+}
+
 void wifi_connect(void) {
-  connected_to_wifi = false;
+  connected_to_wifi = FALSE;
 
   // Initialize NVS
   esp_err_t ret = nvs_flash_init();

@@ -17,14 +17,14 @@ typedef struct {
   unsigned wasm_file_buf_size;
 } wasm_file_t;
 
-wasm_t initilize_wasm();
+wasm_t initilize_wasm(int stack_size, int heap_size);
 
 wasm_file_t initilize_wasm_file(uint8_t *data, size_t size);
 
 RuntimeInitArgs wasm_init_args();
 
 void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
-                NativeSymbol *native_symbols);
+                NativeSymbol native_symbols);
 
 static void *app_instance_main(wasm_module_inst_t module_inst);
 

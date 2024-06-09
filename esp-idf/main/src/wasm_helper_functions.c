@@ -12,12 +12,12 @@ wasm_file_t initilize_wasm_file(uint8_t *data, size_t size) {
   return wasm_file;
 }
 
-wasm_t initilize_wasm() {
+wasm_t initilize_wasm(int stack_size, int heap_size) {
   wasm_t wasm;
   wasm.wasm_module = NULL;
   wasm.wasm_module_inst = NULL;
-  wasm.stack_size = 32 * 1024;
-  wasm.heap_size = 32 * 1024;
+  wasm.stack_size = stack_size;
+  wasm.heap_size = heap_size;
 
   return wasm;
 }
@@ -41,7 +41,7 @@ RuntimeInitArgs wasm_init_args() {
 }
 
 void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
-                NativeSymbol *native_symbols) {
+                NativeSymbol native_symbols) {
   /* setup variables for instantiating and running the wasm module */
 
   char error_buf[128];
@@ -55,12 +55,14 @@ void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
     return;
   }
 
-  int n_native_symbols = sizeof(*native_symbols) / sizeof(NativeSymbol);
-  if (!wasm_runtime_register_natives("env", native_symbols, n_native_symbols)) {
-
-    ESP_LOGE(LOG_TAG, "Registering native functions failed");
-    return;
-  }
+  // int n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
+  // ESP_LOGI(LOG_TAG, "Number of native symbols: %d\n", n_native_symbols);
+  // if (!wasm_runtime_register_natives("env", native_symbols,
+  // n_native_symbols)) {
+  //
+  //   ESP_LOGE(LOG_TAG, "Registering native functions failed");
+  //   return;
+  // }
 
   /* load WASM module */
   if (!(wasm->wasm_module = wasm_runtime_load(wasm_file->wasm_file_buf,
@@ -93,7 +95,7 @@ int wasm_run_func(wasm_t *wasm, char *func_name, int argc, uint32 args[]) {
   /* lookup a WASM function by its name
      The function signature can NULL here */
   wasm_function_inst_t func =
-      wasm_runtime_lookup_function(wasm->wasm_module_inst, func_name, NULL);
+      wasm_runtime_lookup_function(wasm->wasm_module_inst, func_name);
 
   /* creat an execution environment to execute the WASM functions */
   ESP_LOGI(LOG_TAG, "Create exec env for func %s", func_name);
@@ -104,7 +106,7 @@ int wasm_run_func(wasm_t *wasm, char *func_name, int argc, uint32 args[]) {
   ESP_LOGI(LOG_TAG, "Calling wasm function %s", func_name);
   if (!wasm_runtime_call_wasm(exec_env, func, argc, args)) {
     /* exception is thrown if call fails */
-    printf("%s\n", wasm_runtime_get_exception(wasm->wasm_module_inst));
+    printf("Error: %s\n", wasm_runtime_get_exception(wasm->wasm_module_inst));
   }
 
   wasm_runtime_destroy_exec_env(exec_env);
