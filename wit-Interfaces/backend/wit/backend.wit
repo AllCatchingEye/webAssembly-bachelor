@@ -72,8 +72,8 @@ interface sockets-handler {
   use tcp.{error, socket, test-message-data, dht11-data};
   socket-handle: func() -> result<_, error>;
   init-db: func() -> result<_, error>;
-  handle-test-message: func(data: test-message-data) -> result<_, error>;
-  handle-dht11-message: func(data: dht11-data) -> result<_, error>;
+  handle-test-message: func(data: test-message-data) -> result<option<string>, error>;
+  handle-dht11-message: func(data: dht11-data) -> result<option<string>, error>;
 }
 
 world server {

@@ -32,15 +32,14 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
         Ok(())
     }
 
-    fn handle_dht11_message(data: Dht11Data) -> Result<(), Error> {
+    fn handle_dht11_message(data: Dht11Data) -> Result<Option<String>, Error> {
         print_to_host("Handling dht11 message...");
         let conn = open_connection("sqlite:data.db", true)?;
+        let mut response = None;
         match data.operation {
             DbOperation::Select => {
                 let query = "SELECT * FROM test";
-                if let Some(results) = execute_query(&conn, query, None)? {
-                    print_to_host(&format!("Results: \n{}", results));
-                }
+                response = execute_query(&conn, query, None)?;
             }
             DbOperation::Insert => {
                 let query = "INSERT INTO dht11 (temperature, humidity) VALUES (?1, ?2)";
@@ -50,9 +49,7 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
                 execute_query(&conn, query, Some(&val_data))?;
 
                 let query = "SELECT * FROM dht11";
-                if let Some(results) = execute_query(&conn, query, None)? {
-                    print_to_host(&format!("Results: \n{}", results));
-                }
+                response = execute_query(&conn, query, None)?;
             }
             DbOperation::Delete => {
                 let query = "DELETE FROM test WHERE id = ?";
@@ -62,26 +59,28 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
                 execute_query(&conn, query, Some(&val_data))?;
 
                 let query = "SELECT * FROM test";
-                if let Some(results) = execute_query(&conn, query, None)? {
-                    print_to_host(&format!("Results: \n{}", results));
-                }
+                response = execute_query(&conn, query, None)?;
             }
             DbOperation::Unknown => {}
         }
 
+        // match response {
+        //     Some(res) => print_to_host(&format!("Results: \n{}", res)),
+        //     None => (),
+        // }
+
         drop_connection(conn)?;
-        Ok(())
+        Ok(response)
     }
 
-    fn handle_test_message(data: TestMessageData) -> Result<(), Error> {
+    fn handle_test_message(data: TestMessageData) -> Result<Option<String>, Error> {
         print_to_host("Handling test message...");
         let conn = open_connection("sqlite:data.db", true)?;
+        let mut response = None;
         match data.operation {
             DbOperation::Select => {
                 let query = "SELECT * FROM test";
-                if let Some(results) = execute_query(&conn, query, None)? {
-                    print_to_host(&format!("Results: \n{}", results));
-                }
+                response = execute_query(&conn, query, None)?;
             }
             DbOperation::Insert => {
                 let query = "INSERT INTO test (name) VALUES (?)";
@@ -91,9 +90,7 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
                 execute_query(&conn, query, Some(&val_data))?;
 
                 let query = "SELECT * FROM test";
-                if let Some(results) = execute_query(&conn, query, None)? {
-                    print_to_host(&format!("Results: \n{}", results));
-                }
+                response = execute_query(&conn, query, None)?;
             }
             DbOperation::Delete => {
                 let query = "DELETE FROM test WHERE name = ?";
@@ -103,14 +100,18 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
                 execute_query(&conn, query, Some(&val_data))?;
 
                 let query = "SELECT * FROM test";
-                if let Some(results) = execute_query(&conn, query, None)? {
-                    print_to_host(&format!("Results: \n{}", results));
-                }
+                execute_query(&conn, query, Some(&val_data))?;
             }
             DbOperation::Unknown => {}
         }
+
+        // match response {
+        //     Some(res) => print_to_host(&format!("Results: \n{}", res)),
+        //     None => (),
+        // }
+
         drop_connection(conn)?;
-        Ok(())
+        Ok(response)
     }
 
     fn socket_handle() -> Result<(), Error> {
@@ -129,14 +130,22 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
 
             print_to_host("Parsing data...");
             let data = parse_data(&message)?;
-            match data {
-                MessageData::Dht11(data) => Component::handle_dht11_message(data)?,
-                MessageData::TestMessage(data) => Component::handle_test_message(data)?,
-                MessageData::None => print_to_host("Unknown message type"),
-            }
+            let response: Result<Option<String>, Error> = match data {
+                MessageData::Dht11(data) => Component::handle_dht11_message(data),
+                MessageData::TestMessage(data) => Component::handle_test_message(data),
+                MessageData::None => {
+                    print_to_host("Unknown message type");
+                    Ok(None)
+                }
+            };
 
-            let response = format!("Received message: {}", message);
-            write(&socket, &stream, &response)?;
+            match response {
+                Ok(Some(res)) => {
+                    let response_msg = format!("Received message: {}", res);
+                    write(&socket, &stream, &response_msg)?;
+                }
+                _ => print_to_host("No result for response."),
+            }
 
             print_to_host("Closing connection...");
             close_stream(&socket, stream);
