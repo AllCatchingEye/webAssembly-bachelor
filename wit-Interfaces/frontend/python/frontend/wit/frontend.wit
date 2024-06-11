@@ -1,0 +1,10 @@
+package bachelor:frontend@0.1.0;
+
+interface client {
+  get-sensor-data: func(ip: string, port: u32) -> string;
+}
+
+world frontend {
+  export client;
+  include wasi:cli/command@0.2.0;
+}
