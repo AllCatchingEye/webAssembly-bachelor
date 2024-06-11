@@ -68,7 +68,7 @@ async fn main() -> Result<()> {
     let mut store = build_store(engine)?;
 
     let (backend, _instance) = Backend::instantiate_async(&mut store, &component, &linker).await?;
-    println!("Instantiated database");
+    println!("Instantiated backend");
 
     let _ = backend
         .bachelor_backend_sockets_handler()

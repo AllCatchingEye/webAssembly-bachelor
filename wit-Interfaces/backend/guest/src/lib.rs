@@ -4,12 +4,12 @@ wit_bindgen::generate!({
 });
 
 use bachelor::backend::sql::{
-    create_table, drop_connection, execute_query, open_connection, print_to_host, DbOperation,
+    create_table, drop_connection, execute_query, open_connection, print_to_host,
 };
 
 use bachelor::backend::tcp::{
-    accept, close_stream, create_socket, parse_data, read, Dht11Data, Error, MessageData,
-    TestMessageData,
+    accept, close_stream, create_socket, parse_data, read, write, DbOperation, Dht11Data, Error,
+    MessageData, TestMessageData,
 };
 
 struct Component;
@@ -17,17 +17,17 @@ struct Component;
 impl exports::bachelor::backend::sockets_handler::Guest for Component {
     fn init_db() -> Result<(), Error> {
         let conn = open_connection("sqlite:data.db", true)?;
-        create_table("DROP TABLE IF EXISTS test", &conn);
-        create_table("DROP TABLE IF EXISTS dht11", &conn);
+        create_table("DROP TABLE IF EXISTS test", &conn)?;
+        create_table("DROP TABLE IF EXISTS dht11", &conn)?;
 
         create_table(
             "CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT)",
             &conn,
-        );
+        )?;
         create_table(
             "CREATE TABLE IF NOT EXISTS dht11 (id INTEGER PRIMARY KEY, temperature INTEGER, humidity INTEGER)",
             &conn,
-        );
+        )?;
         drop_connection(conn)?;
         Ok(())
     }
@@ -68,6 +68,7 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
             }
             DbOperation::Unknown => {}
         }
+
         drop_connection(conn)?;
         Ok(())
     }
@@ -133,6 +134,9 @@ impl exports::bachelor::backend::sockets_handler::Guest for Component {
                 MessageData::TestMessage(data) => Component::handle_test_message(data)?,
                 MessageData::None => print_to_host("Unknown message type"),
             }
+
+            let response = format!("Received message: {}", message);
+            write(&socket, &stream, &response)?;
 
             print_to_host("Closing connection...");
             close_stream(&socket, stream);

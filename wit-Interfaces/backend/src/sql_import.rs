@@ -69,12 +69,12 @@ impl sql::Host for DatabaseHost {
         &mut self,
         query: String,
         conn: Resource<DatabaseConnectionHost>,
-    ) -> Result<(), wasmtime::Error> {
+    ) -> Result<(Result<(), u32>), wasmtime::Error> {
         let host_conn = self.res_table.get_mut(&conn)?;
         sqlx::query(query.as_str())
             .execute(&mut host_conn.connection)
             .await?;
-        Ok(())
+        Ok(Ok(()))
     }
 
     async fn drop_connection(
@@ -128,52 +128,6 @@ impl sql::Host for DatabaseHost {
                 Ok(Err(1))
             }
         }
-    }
-
-    async fn select(
-        &mut self,
-        conn: Resource<DatabaseConnectionHost>,
-    ) -> Result<Result<String, u32>, wasmtime::Error> {
-        let host_conn = self.res_table.get_mut(&conn)?;
-
-        let rows = sqlx::query("SELECT * FROM test")
-            .fetch_all(&mut host_conn.connection)
-            .await?;
-
-        let mut result_string = String::new();
-        for row in rows {
-            let id: i32 = row.get(0);
-            let name: String = row.get(1);
-            result_string.push_str(&format!("ID: {}, Name: {}\n", id, name));
-        }
-
-        Ok(Ok(result_string))
-    }
-
-    async fn insert(
-        &mut self,
-        conn: Resource<DatabaseConnectionHost>,
-        name: String,
-    ) -> Result<(), wasmtime::Error> {
-        let host_conn = self.res_table.get_mut(&conn)?;
-        sqlx::query("INSERT INTO test (name) VALUES (?)")
-            .bind(name)
-            .execute(&mut host_conn.connection)
-            .await?;
-        Ok(())
-    }
-
-    async fn delete(
-        &mut self,
-        conn: Resource<DatabaseConnectionHost>,
-        name: String,
-    ) -> Result<(), wasmtime::Error> {
-        let host_conn = self.res_table.get_mut(&conn)?;
-        sqlx::query("DELETE FROM test WHERE name = ?")
-            .bind(name)
-            .execute(&mut host_conn.connection)
-            .await?;
-        Ok(())
     }
 
     async fn print_to_host(&mut self, str: String) -> Result<(), wasmtime::Error> {

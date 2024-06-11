@@ -9,16 +9,15 @@ bindgen!({
     }
 });
 
-use bachelor::backend::sql::DbOperation;
 use bachelor::backend::tcp;
-use bachelor::backend::tcp::{Dht11Data, MessageData, TestMessageData};
+use bachelor::backend::tcp::{DbOperation, Dht11Data, MessageData, TestMessageData};
 
 use crate::{Ctx, Import};
 
 use serde::Deserialize;
 use serde_json::Value;
 
-use std::io::Read;
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 
 use wasmtime::{
@@ -153,6 +152,20 @@ impl tcp::Host for TcpHost {
         host_stream.stream.read_to_string(&mut message)?;
 
         Ok(Ok(message))
+    }
+
+    async fn write(
+        &mut self,
+        sock: Resource<DatabaseTcpSocket>,
+        inc_str: Resource<DatabaseTcpStream>,
+        msg: String,
+    ) -> Result<Result<(), u32>, wasmtime::Error> {
+        let host_sock = self.res_table.get_mut(&sock)?;
+        let host_stream = host_sock.res_table.get_mut(&inc_str)?;
+
+        host_stream.stream.write_all(msg.as_bytes())?;
+
+        Ok(Ok(()))
     }
 
     async fn close_stream(
