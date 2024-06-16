@@ -1,0 +1,9 @@
+package frontend:composition targets wasi:cli/command;
+
+let parser = new frontend:parser {};
+
+let webserver = new frontend:webserver {
+  parse: parser.parse,
+};
+
+export webserver;

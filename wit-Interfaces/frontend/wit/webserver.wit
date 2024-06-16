@@ -1,0 +1,60 @@
+package frontend:webserver@0.1.0;
+
+interface plot {
+  plot-temperature: func(idx: list<u32>, temperatures: list<s32>);
+  plot-humidity: func(idx: list<u32>, humidities: list<s32>);
+  test-plot: func();
+}
+
+world plotter {
+  export plot;
+  include wasi:cli/command@0.2.0;
+}
+
+interface client {
+  get-sensor-data: func(ip: string, port: u32, payload: string) -> string;
+}
+
+world tcp-client {
+  export client;
+  //include wasi:cli/command@0.2.0;
+}
+
+interface parse {
+  parse-ids: func(json: string) -> list<u32>;
+  parse-temperatures: func(json: string) -> list<s32>;
+  parse-humidities: func(json: string) -> list<u32>;
+}
+
+/*
+interface parse {
+  parse-ids: func(json: string) -> list<f64>;
+  parse-temperatures: func(json: string) -> list<f64>;
+  parse-humidities: func(json: string) -> list<f64>;
+}
+*/
+
+world parser {
+  export parse;
+}
+
+world webserver {
+  import parse;
+  import client;
+
+  export start-webserver: func();
+  //include wasi:cli/command@0.2.0;
+}
+
+
+interface frontend {
+  parse-ids: func(json: string) -> list<u32>;
+  parse-temperatures: func(json: string) -> list<s32>;
+  parse-humidities: func(json: string) -> list<u32>;
+  get-sensor-data: func(ip: string, port: u32, payload: string) -> string;
+  start-webserver: func() -> string;
+}
+
+world host-webserver {
+  export frontend;
+}
