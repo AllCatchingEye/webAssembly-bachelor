@@ -1,0 +1,59 @@
+package frontend:webserver@0.1.0;
+
+interface plot {
+  plot-temperature: func(idx: list<u32>, temperatures: list<s32>);
+  plot-humidity: func(idx: list<u32>, humidities: list<u32>);
+}
+
+world plotter {
+  export plot;
+}
+
+interface client {
+  get-sensor-data: func(ip: string, port: u32, payload: string) -> string;
+}
+
+world tcp-client {
+  export client;
+}
+
+
+interface parse {
+  parse-ids: func(json: string) -> list<u32>;
+  parse-temperatures: func(json: string) -> list<s32>;
+  parse-humidities: func(json: string) -> list<u32>;
+}
+
+world parser {
+  export parse;
+}
+
+world webserver {
+  import parse;
+  import client;
+  import plot;
+
+  export start-webserver: func();
+  import print-host: func(str: string);
+}
+
+
+interface frontend {
+  //parse-ids: func(json: string) -> list<u32>;
+  //parse-temperatures: func(json: string) -> list<s32>;
+  //parse-humidities: func(json: string) -> list<u32>;
+  //get-sensor-data: func(ip: string, port: u32, payload: string) -> string;
+  run: func() -> s32;
+}
+
+interface host-frontend {
+  start-webserver: func() -> string;
+  plot-temperature: func(idx: list<u32>, temperatures: list<s32>);
+  plot-humidity: func(idx: list<u32>, humidities: list<s32>);
+  test-plot: func();
+}
+
+world test {
+  export frontend;
+  //import host-frontend;
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <title>My HTML Page</title>
+
+    <script>
+      function refreshIframes() {
+        // Select the iframes
+        var temperatureIframe = document.getElementById("temperatureIframe");
+        var humidityIframe = document.getElementById("humidityIframe");
+
+        // Get the current time to use as a query parameter to force reload
+        var currentTime = new Date().getTime();
+
+        // Refresh the iframes by updating their src attribute with a timestamp to bypass caching
+        temperatureIframe.src = "temperature.html?time=" + currentTime;
+        humidityIframe.src = "humidity.html?time=" + currentTime;
+      }
+
+      // Set interval to refresh iframes every second
+      setInterval(refreshIframes, 10000);
+    </script>
+  </head>
+  <body>
+    <h1>Hello, World!</h1>
+    <p>This is a simple HTML page served by Python.</p>
+
+    <h3>Temperature plot</h3>
+    <iframe
+      id="temperatureIframe"
+      src="temperature.html"
+      width="600"
+      height="400"
+    ></iframe>
+
+    <h3>Humidity plot</h3>
+    <iframe
+      id="humidityIframe"
+      src="humidity.html"
+      width="600"
+      height="400"
+    ></iframe>
+  </body>
+</html>

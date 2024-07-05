@@ -1,0 +1,34 @@
+package esp:monitor@0.1.0;
+
+interface monitor {
+  record dht11-sensor-values {
+    temperature: s32,
+    humidity: s32,
+    status: s32,
+  }
+
+  run: func() -> s32;
+  read-dht11-sensor: func() -> dht11-sensor-values;
+  valid-values: func(values: dht11-sensor-values) -> s32;
+  valid-status: func(values: dht11-sensor-values) -> s32;
+}
+
+interface native-functions {
+  initilize-sensors: func();
+  read-humidity: func() -> s32;
+  read-temperature: func() -> s32;
+  read-status: func() -> s32;
+
+  get-wifi-status: func() -> s32;
+  build-message: func(buf-ptr: u32, buf-size: u32, temperature: s32, humidity: s32);
+
+  fifo-init: func();
+  put: func(msg-ptr: u32) -> s32;
+}
+
+world board {
+  export native-functions;
+  export monitor;
+}
+
+

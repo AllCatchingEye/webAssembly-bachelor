@@ -31,7 +31,7 @@ fi
 rm -rf build
 
 cd ./main/wasm
-./get_c_arrays.sh
+./build_c_arrays.sh
 cd .. ; cd ..
 
 idf.py set-target $TARGET

@@ -1,0 +1,12 @@
+[package]
+name = "webserver-rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wasmtime = "22.0.0"
+wasmtime-wasi = "22.0.0"
+wit-bindgen = "0.27.0"
+plotly = { version = "0.9.0", features = ["kaleido"] }
+hyper = "1.3.1"
+tokio = { version = "1.38.0", features = ["full"] }

@@ -1,0 +1,93 @@
+package bachelor:backend@0.1.0;
+
+interface sql {
+  use tcp.{message-type};
+  type error = u32;
+
+  resource connection; 
+  open-connection: func(url: string, create-if-missing: bool) -> result<connection, error>;
+  drop-connection: func(conn: connection) -> result<_, error>;
+
+  create-table: func(query: string, conn: borrow<connection>) -> result<_, error>;
+
+  execute-query: func(conn: borrow<connection>, query: string, values: option<string>, mtype: message-type) -> result<option<string>, error>;
+
+  print-to-host: func(str: string);
+}
+
+interface sql-handler {
+  use sql.{error};
+  db-test: func() -> result<_, error>;
+}
+
+interface tcp {
+  type error = u32;
+
+  resource socket;
+  resource tcp-stream;
+
+  enum db-operation {
+    select,
+    insert,
+    delete,
+    unknown,
+  }
+
+  enum message-type {
+    dht11,
+    test,
+    unknown,
+  }
+
+  record test-message {
+    message-type: string,
+    operation: db-operation,
+    id: option<u32>,
+    name: option<string>,
+  }
+
+  record dht11-message {
+    message-type: string,
+    operation: db-operation,
+    id: option<u32>,
+    temperature: option<s32>,
+    humidity: option<s32>,
+  }
+
+  variant message {
+    dht11(dht11-message),
+    test(test-message),
+    none
+  }
+
+  create-socket: func(addr: string) -> result<socket, error>;
+  accept: func(sock: borrow<socket>) -> result<tcp-stream, error>;
+  read: func(sock: borrow<socket>, inc-str: borrow<tcp-stream>) -> result<string, error>;
+  write: func(sock: borrow<socket>, inc-str: borrow<tcp-stream>, msg: string) -> result<_, error>;
+  close-stream: func(sock: borrow<socket>, inc-str: tcp-stream);
+
+  parse-data: func(mes: string) -> result<message, error>;
+}
+
+interface sockets-handler {
+  use tcp.{error, socket, test-message, dht11-message};
+  socket-handle: func() -> result<_, error>;
+  init-db: func() -> result<_, error>;
+  handle-test-message: func(data: test-message) -> result<option<string>, error>;
+  handle-dht11-message: func(data: dht11-message) -> result<option<string>, error>;
+}
+
+world server {
+  import tcp;
+  include wasi:sockets/imports@0.2.0;
+}
+
+world database {
+  import sql;
+}
+
+world backend {
+  import tcp;
+  import sql;
+  export sockets-handler;
+}
