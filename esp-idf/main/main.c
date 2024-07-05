@@ -21,11 +21,8 @@
 #include "src/wasm_helper_functions.h"
 #include "src/wifi.h"
 
-#include "c_arrays/add.h"
-#include "c_arrays/add_core.h"
-#include "c_arrays/monitor.h"
-#include "c_arrays/process_data.h"
-#include "c_arrays/test_wasm.h"
+#include "c_arrays/monitor_component.h"
+#include "c_arrays/monitor_module.h"
 
 // #ifdef CONFIG_IDF_TARGET_ESP32S3
 #define IWASM_MAIN_STACK_SIZE 5120
@@ -60,8 +57,8 @@ void *iwasm_main(void *arg) {
        "()"},
   };
 
-  wasm_file_t wasm_file =
-      initilize_wasm_file((uint8_t *)monitor, sizeof(monitor));
+  wasm_file_t wasm_file = initilize_wasm_file((uint8_t *)monitor_component,
+                                              sizeof(monitor_component));
 
   // void *ret;
   RuntimeInitArgs init_args;

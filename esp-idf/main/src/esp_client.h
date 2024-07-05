@@ -1,8 +1,3 @@
-#ifndef PROCESS_DATA_H
-#define PROCESS_DATA_H
-
-#endif /* HEADER_FILE_NAME_H */
-
 #include "esp_http_client.h"
 
 void test_tcp();

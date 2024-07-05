@@ -100,3 +100,22 @@ int exports_esp_monitor_monitor_valid_status(
     return 1;
   }
 }
+
+// dummy implementation for native functions
+// Won't be used when running binary, is necessary to build a component
+
+// void exports_esp_monitor_native_functions_initilize_sensors(void) {}
+// int32_t exports_esp_monitor_native_functions_read_humidity(void) { return 0;
+// } int32_t exports_esp_monitor_native_functions_read_temperature(void) {
+//   return 0;
+// }
+// int32_t exports_esp_monitor_native_functions_read_status(void) { return 0; }
+// int32_t exports_esp_monitor_native_functions_get_wifi_status(void) { return
+// 0; } void exports_esp_monitor_native_functions_build_message(uint32_t
+// buf_ptr,
+//                                                         uint32_t buf_size,
+//                                                         int32_t temperature,
+//                                                         int32_t humidity) {}
+// void exports_esp_monitor_native_functions_fifo_init(void) {}
+// int32_t exports_esp_monitor_native_functions_put(uint32_t msg_ptr) { return
+// 0; }

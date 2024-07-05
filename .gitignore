@@ -7,6 +7,11 @@ esp-idf/main/wasm/client/build/
 esp-idf/main/wasm/process_data/build/
 esp-idf/main/wasm/add/build/
 esp-idf/main/wasm/client/CMakeFiles/
+esp-idf/main/monitor_component/build/
+esp-idf/main/monitor_component/monitor-component.wasm
+esp-idf/main/monitor_component/monitor-core.wasm
+esp-idf/main/monitor_module/build/
+esp-idf/main/monitor_module/monitor_module.wasm
 
 backend/.vscode/
 backend/.idea/
@@ -34,7 +39,10 @@ frontend/webserver/webserver-rust/humidity.html
 frontend/webserver/webserver-rust/temperature.html
 frontend/webserver/host_part/
 frontend/webserver/plugged.wasm
-frontend/out/
+frontend/out/client.wasm
+frontend/out/parser.wasm
+frontend/out/plugged.wasm
+frontend/out/webserver.wasm
 
 memory-test/component-model/c/add-core.wasm
 memory-test/component-model/c/example.c

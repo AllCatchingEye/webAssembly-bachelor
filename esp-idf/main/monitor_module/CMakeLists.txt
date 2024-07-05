@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(process_data)
+project(monitor_module)
 
 set(WASI_SDK_PATH /opt/wasi-sdk-21.0)
 set(CMAKE_C_COMPILER ${WASI_SDK_PATH}/bin/clang-17)
@@ -9,7 +9,7 @@ set(CMAKE_C_FLAGS "\
     -Wl,--strip-all \
     -Os \
     -Wl,--export=${WASI_EXPORT} \
-    -Wl,--export=monitor_sensors \
+    -Wl,--export=all \
     -Wl,--no-entry \
     -Wl,--allow-undefined \
     -z stack-size=8192 \
@@ -19,10 +19,10 @@ set(CMAKE_C_FLAGS "\
 ")
 set(CMAKE_C_LINK_FLAGS ${CMAKE_C_FLAGS})
 
-add_executable(process_data.wasm process_data.c)
+add_executable(monitor_module.wasm monitor_mod.c)
 
 add_custom_command(
-    TARGET process_data.wasm
+    TARGET monitor_module.wasm
     POST_BUILD
-    COMMAND cp process_data.wasm ..
+    COMMAND cp monitor_module.wasm ..
 )
