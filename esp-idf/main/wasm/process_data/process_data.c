@@ -2,20 +2,10 @@
 #include "stdio.h"
 #include <unistd.h>
 
-dht11_values_t read_dht11_sensor() {
-  printf("Reading DHT11 sensor values...\n");
-  dht11_values_t dht11_values;
-  dht11_values.temperature = read_temperature();
-  dht11_values.humidity = read_humidity();
-  dht11_values.status = read_status();
-  printf("Sensor read complete: Temperature: %d, Humidity: %d, Status: %d\n",
-         dht11_values.temperature, dht11_values.humidity, dht11_values.status);
-  return dht11_values;
-}
-
-void monitor_sensors() {
+int main() {
   printf("Initializing FIFO...\n");
   fifo_init();
+  initilize_sensors();
 
   // printf("Starting tcp server...\n");
   // start_server();
@@ -51,6 +41,17 @@ void monitor_sensors() {
     printf("Sleeping for %d seconds...\n", sleep_interval);
     sleep(sleep_interval);
   }
+}
+
+dht11_values_t read_dht11_sensor() {
+  printf("Reading DHT11 sensor values...\n");
+  dht11_values_t dht11_values;
+  dht11_values.temperature = read_temperature();
+  dht11_values.humidity = read_humidity();
+  dht11_values.status = read_status();
+  printf("Sensor read complete: Temperature: %d, Humidity: %d, Status: %d\n",
+         dht11_values.temperature, dht11_values.humidity, dht11_values.status);
+  return dht11_values;
 }
 
 int valid_values(dht11_values_t dht11_values) {

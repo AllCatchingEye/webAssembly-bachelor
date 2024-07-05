@@ -1,5 +1,0 @@
-package example:runner@0.1.0;
-
-world runner {
-    import example:component/adder@0.1.0;
-}

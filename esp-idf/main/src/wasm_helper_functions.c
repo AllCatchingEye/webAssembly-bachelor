@@ -22,7 +22,12 @@ wasm_t initilize_wasm(int stack_size, int heap_size) {
   return wasm;
 }
 
-RuntimeInitArgs wasm_init_args() {
+void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
+                NativeSymbol native_symbols) {
+  /* setup variables for instantiating and running the wasm module */
+
+  char error_buf[128];
+
   // void *ret;
   RuntimeInitArgs init_args;
 
@@ -37,32 +42,12 @@ RuntimeInitArgs wasm_init_args() {
 #error The usage of a global heap pool is not implemented yet for esp-idf.
 #endif
 
-  return init_args;
-}
-
-void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
-                NativeSymbol native_symbols) {
-  /* setup variables for instantiating and running the wasm module */
-
-  char error_buf[128];
-
-  RuntimeInitArgs init_args = wasm_init_args();
-
   ESP_LOGI(LOG_TAG, "Initialize WASM runtime");
   /* initialize runtime environment */
   if (!wasm_runtime_full_init(&init_args)) {
     ESP_LOGE(LOG_TAG, "Init runtime failed.");
     return;
   }
-
-  // int n_native_symbols = sizeof(native_symbols) / sizeof(NativeSymbol);
-  // ESP_LOGI(LOG_TAG, "Number of native symbols: %d\n", n_native_symbols);
-  // if (!wasm_runtime_register_natives("env", native_symbols,
-  // n_native_symbols)) {
-  //
-  //   ESP_LOGE(LOG_TAG, "Registering native functions failed");
-  //   return;
-  // }
 
   /* load WASM module */
   if (!(wasm->wasm_module = wasm_runtime_load(wasm_file->wasm_file_buf,

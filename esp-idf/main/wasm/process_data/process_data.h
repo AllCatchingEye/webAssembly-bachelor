@@ -9,20 +9,21 @@
 #define TRUE 1
 #define FALSE 0
 
+int main();
+
 typedef struct {
   int temperature;
   int humidity;
   int status;
 } dht11_values_t;
 
+int initilize_sensors();
 dht11_values_t read_dht11_sensor();
 
 int get_wifi_status();
 
 int valid_values(dht11_values_t dht11_values);
 int valid_status(dht11_values_t dht11_values);
-
-void monitor_sensors();
 
 /*** Exposed native APIs ***/
 

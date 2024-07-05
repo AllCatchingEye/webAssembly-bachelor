@@ -1,0 +1,27 @@
+CMakeFiles/monitor-core.wasm.dir/monitor.c.o: \
+  /home/envy/Development/webAssembly-bachelor/wit-Interfaces/esp/monitor.c \
+  /home/envy/Development/webAssembly-bachelor/wit-Interfaces/esp/board.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/stdint.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/stdint.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/bits/alltypes.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__struct_timeval.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__typedef_time_t.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__typedef_suseconds_t.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__struct_timespec.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__struct_iovec.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/stddef.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/__stddef_size_t.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/bits/stdint.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/stdbool.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/stdio.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/features.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/__stddef_null.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__seek.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/wasi/api.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/__stddef_ptrdiff_t.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/__stddef_wchar_t.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/__stddef_max_align_t.h \
+  /opt/wasi-sdk-22.0/lib/clang/18/include/__stddef_offsetof.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/unistd.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/__header_unistd.h \
+  /opt/wasi-sdk-22.0/share/wasi-sysroot/include/wasm32-wasi/bits/posix.h

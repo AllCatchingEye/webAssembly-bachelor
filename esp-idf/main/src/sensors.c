@@ -4,6 +4,7 @@
 #include <sys/time.h>
 
 void initilize_sensors() { DHT11_init(GPIO_NUM_4); }
+void initilize_sensors_native(wasm_exec_env_t exec_env) { initilize_sensors(); }
 
 int read_temperature_native(wasm_exec_env_t exec_env) {
   return DHT11_read().temperature;

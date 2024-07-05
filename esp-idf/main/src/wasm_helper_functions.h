@@ -21,8 +21,6 @@ wasm_t initilize_wasm(int stack_size, int heap_size);
 
 wasm_file_t initilize_wasm_file(uint8_t *data, size_t size);
 
-RuntimeInitArgs wasm_init_args();
-
 void wasm_start(wasm_t *wasm, wasm_file_t *wasm_file,
                 NativeSymbol native_symbols);
 

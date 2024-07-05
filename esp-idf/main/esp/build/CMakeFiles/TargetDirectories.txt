@@ -1,0 +1,3 @@
+/home/envy/Development/webAssembly-bachelor/wit-Interfaces/esp/build/CMakeFiles/monitor-core.wasm.dir
+/home/envy/Development/webAssembly-bachelor/wit-Interfaces/esp/build/CMakeFiles/edit_cache.dir
+/home/envy/Development/webAssembly-bachelor/wit-Interfaces/esp/build/CMakeFiles/rebuild_cache.dir

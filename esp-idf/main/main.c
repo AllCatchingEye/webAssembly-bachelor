@@ -22,6 +22,8 @@
 #include "src/wifi.h"
 
 #include "c_arrays/add.h"
+#include "c_arrays/add_core.h"
+#include "c_arrays/monitor.h"
 #include "c_arrays/process_data.h"
 #include "c_arrays/test_wasm.h"
 
@@ -34,27 +36,48 @@
 void *iwasm_main(void *arg) {
   (void)arg; /* unused */
 
-  int stack_size = 16 * 1024;
-  int heap_size = 16 * 1024;
+  int stack_size = 8 * 1024;
+  int heap_size = 8 * 1024;
 
   wasm_t wasm = initilize_wasm(stack_size, heap_size);
 
   static NativeSymbol native_symbols[] = {
       // {"start_server", start_server_wrapper, "()"},
-      {"read_temperature", read_temperature_native, "()i"},
-      {"read_humidity", read_humidity_native, "()i"},
-      {"read_status", read_status_native, "()i"},
-      {"build_message", build_message_native, "(*~ii)"},
-      {"get_wifi_status", get_wifi_status_wrapper, "()i"},
-      {"put", put_wrapper, "($)i"},
-      {"fifo_init", fifo_init_wrapper, "()"},
+      {"exports_esp_monitor_native_functions_initilize_sensors",
+       initilize_sensors_native, "()"},
+      {"exports_esp_monitor_native_functions_read_temperature",
+       read_temperature_native, "()i"},
+      {"exports_esp_monitor_native_functions_read_humidity",
+       read_humidity_native, "()i"},
+      {"exports_esp_monitor_native_functions_read_status", read_status_native,
+       "()i"},
+      {"exports_esp_monitor_native_functions_build_message",
+       build_message_native, "(*~ii)"},
+      {"exports_esp_monitor_native_functions_get_wifi_status",
+       get_wifi_status_wrapper, "()i"},
+      {"exports_esp_monitor_native_functions_put", put_wrapper, "($)i"},
+      {"exports_esp_monitor_native_functions_fifo_init", fifo_init_wrapper,
+       "()"},
   };
 
   wasm_file_t wasm_file =
-      initilize_wasm_file((uint8_t *)process_data, sizeof(process_data));
+      initilize_wasm_file((uint8_t *)monitor, sizeof(monitor));
+
+  // void *ret;
+  RuntimeInitArgs init_args;
+
+  /* configure memory allocation */
+  memset(&init_args, 0, sizeof(RuntimeInitArgs));
+#if WASM_ENABLE_GLOBAL_HEAP_POOL == 0
+  init_args.mem_alloc_type = Alloc_With_Allocator;
+  init_args.mem_alloc_option.allocator.malloc_func = (void *)os_malloc;
+  init_args.mem_alloc_option.allocator.realloc_func = (void *)os_realloc;
+  init_args.mem_alloc_option.allocator.free_func = (void *)os_free;
+#else
+#error The usage of a global heap pool is not implemented yet for esp-idf.
+#endif
 
   char error_buf[128];
-  RuntimeInitArgs init_args = wasm_init_args();
   ESP_LOGI(LOG_TAG, "Initialize WASM runtime");
   /* initialize runtime environment */
   if (!wasm_runtime_full_init(&init_args)) {
@@ -85,10 +108,13 @@ void *iwasm_main(void *arg) {
     ESP_LOGE(LOG_TAG, "Error while instantiating: %s", error_buf);
   }
 
-  initilize_sensors();
-
   ESP_LOGI(LOG_TAG, "Connecting to wifi...");
   wifi_connect();
+
+  while (get_wifi_status() != 1) {
+    ESP_LOGI(LOG_TAG, "Waiting for connection...");
+    sleep(1);
+  }
 
   pthread_t tcp_thread;
   int res;
@@ -103,7 +129,8 @@ void *iwasm_main(void *arg) {
 
   ESP_LOGI(LOG_TAG, "Starting sensor monitor");
   uint32 args[1];
-  wasm_run_func(&wasm, "monitor_sensors", 0, args);
+
+  wasm_run_func(&wasm, "esp:monitor/monitor@0.1.0#run", 0, args);
 
   res = pthread_join(tcp_thread, NULL);
   assert(res == 0);

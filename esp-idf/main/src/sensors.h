@@ -6,6 +6,7 @@
 #endif
 
 void initilize_sensors();
+void initilize_sensors_native(wasm_exec_env_t exec_env);
 
 int read_temperature_native(wasm_exec_env_t exec_env);
 int read_humidity_native(wasm_exec_env_t exec_env);

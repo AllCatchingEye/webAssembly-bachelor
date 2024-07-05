@@ -42,3 +42,5 @@ build_c_array() {
 
 # build_c_array ./add/ ./add/build/add.wasm add
 build_c_array ./process_data/ ./process_data/process_data.wasm process_data
+python wasm_c_array.py ./add.wasm add
+python wasm_c_array.py ./monitor-core.wasm monitor
