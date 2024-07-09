@@ -1,41 +1,112 @@
 # webAssembly-bachelor
 
+## Requirements
+
+### General
+
+Wasm-tools needs to be installed: https://github.com/bytecodealliance/wasm-tools
+
+WAC needs to be installed to compose components together: https://github.com/bytecodealliance/wac
+
+### Esp-idf
+
+#### WebAssembly Micro Runtime
+
+To run the esp the following requirements must be fulfilled:
+
+* The Wasm Micro Runtime: https://github.com/bytecodealliance/wasm-micro-runtime
+
+The path to WAMR should be exported
+
+```export WAMR_PATH="/opt/wasm-micro-runtime/"```
+
+#### Esp-Idf
+
+* ESP IDF: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html
+
+Then the following environment variables must be set:
+
+```
+export IDF_PATH="$HOME/esp/esp-idf"
+alias get_idf='. $HOME/esp/esp-idf/export.sh'
+```
+
+#### Wasi-SDK
+
+* The Wasi SDK must be installed: https://github.com/WebAssembly/wasi-sdk
+
+The Paths for the WASI SDK may need to be adjusted in the following files:
+
+* ./esp-idf/main/monitor_module/CMakeLists.txt
+* ./esp-idf/main/monitor_component/CMakeLists.txt
+
+I have also set the Following environment variables for the WASI SDK:
+
+```
+# wasi-sdk
+export WASI_VERSION=22
+export WASI_VERSION_FULL=${WASI_VERSION}.0
+export WASI_SDK_PATH=/opt/wasi-sdk-${WASI_VERSION_FULL}
+export WASI_TOOLCHAIN_FILE=${WASI_SDK_PATH}/share/cmake/wasi-sdk.cmake
+export WASI_SYS_ROOT=${WASI_SDK_PATH}/share/wasi-sysroot/
+alias CC="${WASI_SDK_PATH}/bin/clang"
+```
+
+In ```./esp-idf/build_and_run.sh``` the port of the line idf.py -p /dev/ttyUSB0 monitor may need to be adjusted
+
+In ```./esp-idf/main/src/sensors.c``` in initilize_sensors() the Pin may need to be adjusted for the Dht11 sensor
+
+### Frontend
+
+I've created a virtual environment in ./frontend and installed the following python libraries with pip
+
+* componentize-py
+* wasmtime
+* plotly
+
+For the parser component written in Go:
+
+* Go 
+* TinyGo: https://tinygo.org/docs/guides/webassembly/wasi/
+
+For the parser written in Javascript:
+
+* Jco and componentize-js:
+
+```
+npm install @bytecodealliance/jco
+npm install @bytecodealliance/componentize-js
+```
+
+### Adjusting the IP Address
+
+I have used a static Ip address for the backend server. To adjust this Ip address to another address the following files have to be adjusted:
+
+```
+./backend/guest/src/lib.rs
+./esp-idf/main/src/esp_client.c
+./frontend/webserver/app.py
+```
+
 ## Running the example
 
-### Esp-idf board
+### Starting the backend Server
 
-To start the esp-idf simply run ./esp-idf/build_and_run.sh
+In order for the board and frontend to be able to send and request data from the backend, it should be started first, by running 
 
-### Backend server written in WIT
+```./backend/build_and_run.sh```
 
-To start the backend server written in WIT run 
-```
-./wit-Interfaces/backend/build_and_run.sh
-```
+### Running the Esp32 Board
 
-To test the backend server locally run 
-```
-./wit-Interfaces/backend/tcp_client.py 
-```
-while the backend server is running
+To start the esp-idf simply run 
 
-To test the backend server with an esp-board in the same network run 
-```
+```./esp-idf/build_and_run.sh esp32```
 
-./esp-idf/build_and_run.sh
-```
+To start the esp-idf simply run 
 
-while the backend server is running
+```./frontend/build_and_run.sh```
 
-The ip adresses und port number sed by server and client might need to be adjusted in the following files: 
-
-```
-./esp-idf/main/src/esp_client.c
-./wit-Interfaces/backend/tcp_client.py
-./wit-Interfaces/backend/guest/src/lib.rs
-```
-
-before running the files mentioned above
+### Starting the Frontend webserver
 
 ## Exposee:
 
