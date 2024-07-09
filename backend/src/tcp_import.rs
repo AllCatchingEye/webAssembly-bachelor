@@ -4,8 +4,8 @@ bindgen!({
     world: "server",
     async: true,
     with: {
-        "bachelor:backend/tcp/socket": DatabaseTcpSocket,
-        "bachelor:backend/tcp/tcp-stream": DatabaseTcpStream,
+        "bachelor:backend/tcp/socket": BackendSocket,
+        "bachelor:backend/tcp/tcp-stream": BackendStream,
     }
 });
 
@@ -31,12 +31,12 @@ pub struct TcpHost {
     res_table: ResourceTable,
 }
 
-pub struct DatabaseTcpSocket {
+pub struct BackendSocket {
     res_table: ResourceTable,
     listener: TcpListener,
 }
 
-pub struct DatabaseTcpStream {
+pub struct BackendStream {
     stream: TcpStream,
 }
 
@@ -87,14 +87,14 @@ impl Import for TcpHost {
 }
 
 impl tcp::HostSocket for TcpHost {
-    fn drop(&mut self, res: Resource<DatabaseTcpSocket>) -> Result<(), wasmtime::Error> {
+    fn drop(&mut self, res: Resource<BackendSocket>) -> Result<(), wasmtime::Error> {
         self.res_table.delete(res)?;
         Ok(())
     }
 }
 
 impl tcp::HostTcpStream for TcpHost {
-    fn drop(&mut self, res: Resource<DatabaseTcpStream>) -> Result<(), wasmtime::Error> {
+    fn drop(&mut self, res: Resource<BackendStream>) -> Result<(), wasmtime::Error> {
         self.res_table.delete(res)?;
         Ok(())
     }
@@ -105,10 +105,10 @@ impl tcp::Host for TcpHost {
     async fn create_socket(
         &mut self,
         addr: String,
-    ) -> Result<Result<Resource<DatabaseTcpSocket>, u32>, wasmtime::Error> {
+    ) -> Result<Result<Resource<BackendSocket>, u32>, wasmtime::Error> {
         let listener = TcpListener::bind(addr)?;
 
-        let database_socket = DatabaseTcpSocket {
+        let database_socket = BackendSocket {
             res_table: ResourceTable::new(),
             listener,
         };
@@ -119,8 +119,8 @@ impl tcp::Host for TcpHost {
 
     async fn accept(
         &mut self,
-        sock: Resource<DatabaseTcpSocket>,
-    ) -> Result<Result<Resource<DatabaseTcpStream>, u32>, wasmtime::Error> {
+        sock: Resource<BackendSocket>,
+    ) -> Result<Result<Resource<BackendStream>, u32>, wasmtime::Error> {
         let host_sock = self.res_table.get_mut(&sock)?;
 
         let res;
@@ -129,7 +129,7 @@ impl tcp::Host for TcpHost {
                 Some(stream) => {
                     let stream = stream?;
 
-                    let host_stream = DatabaseTcpStream { stream };
+                    let host_stream = BackendStream { stream };
                     res = host_sock.res_table.push(host_stream)?;
                     break;
                 }
@@ -142,8 +142,8 @@ impl tcp::Host for TcpHost {
 
     async fn read(
         &mut self,
-        sock: Resource<DatabaseTcpSocket>,
-        inc_str: Resource<DatabaseTcpStream>,
+        sock: Resource<BackendSocket>,
+        inc_str: Resource<BackendStream>,
     ) -> Result<Result<String, u32>, wasmtime::Error> {
         let host_sock = self.res_table.get_mut(&sock)?;
         let host_stream = host_sock.res_table.get_mut(&inc_str)?;
@@ -159,8 +159,8 @@ impl tcp::Host for TcpHost {
 
     async fn write(
         &mut self,
-        sock: Resource<DatabaseTcpSocket>,
-        inc_str: Resource<DatabaseTcpStream>,
+        sock: Resource<BackendSocket>,
+        inc_str: Resource<BackendStream>,
         msg: String,
     ) -> Result<Result<(), u32>, wasmtime::Error> {
         let host_sock = self.res_table.get_mut(&sock)?;
@@ -173,8 +173,8 @@ impl tcp::Host for TcpHost {
 
     async fn close_stream(
         &mut self,
-        sock: Resource<DatabaseTcpSocket>,
-        stream: Resource<DatabaseTcpStream>,
+        sock: Resource<BackendSocket>,
+        stream: Resource<BackendStream>,
     ) -> Result<(), wasmtime::Error> {
         let host_sock = self.res_table.get_mut(&sock)?;
         let host_stream = host_sock.res_table.get_mut(&stream)?;
